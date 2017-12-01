@@ -10,18 +10,17 @@
  *
  * @category   Pimcore
  * @package    Document
- * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
+ *
+ * @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
  * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Document\Hardlink;
 
-use Pimcore\Model;
 use Pimcore\Model\Document;
 
 trait Wrapper
 {
-
     /**
      * @var Document\Hardlink
      */
@@ -48,6 +47,9 @@ trait Wrapper
         $this->raiseHardlinkError();
     }
 
+    /**
+     * @return mixed
+     */
     public function getProperties()
     {
         if ($this->properties == null) {
@@ -82,7 +84,6 @@ trait Wrapper
                 }
             }
 
-
             $properties = array_merge($sourceProperties, $hardLinkProperties);
             $this->setProperties($properties);
         }
@@ -90,6 +91,11 @@ trait Wrapper
         return $this->properties;
     }
 
+    /**
+     * @param bool $unpublished
+     *
+     * @return null
+     */
     public function getChildren($unpublished = false)
     {
         if ($this->childs === null) {
@@ -104,7 +110,7 @@ trait Wrapper
                     if ($c) {
                         $c->setHardLinkSource($hardLink);
                         $c->setSourceDocument($sourceDocument);
-                        $c->setPath(preg_replace("@^" . preg_quote($hardLink->getSourceDocument()->getRealFullpath()) . "@", $hardLink->getRealFullpath(), $c->getRealPath()));
+                        $c->setPath(preg_replace('@^' . preg_quote($hardLink->getSourceDocument()->getRealFullpath()) . '@', $hardLink->getRealFullpath(), $c->getRealPath()));
 
                         $children[] = $c;
                     }
@@ -117,6 +123,9 @@ trait Wrapper
         return $this->childs;
     }
 
+    /**
+     * @return bool
+     */
     public function hasChildren()
     {
         $hardLink = $this->getHardLinkSource();
@@ -130,15 +139,15 @@ trait Wrapper
 
     /**
      * @throws \Exception
-     * @return void
      */
     protected function raiseHardlinkError()
     {
-        throw new \Exception("Method no supported by hardlinked documents");
+        throw new \Exception('Method no supported by hardlinked documents');
     }
 
     /**
      * @param Document\Hardlink $hardLinkSource
+     *
      * @return $this
      */
     public function setHardLinkSource($hardLinkSource)

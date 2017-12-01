@@ -10,7 +10,8 @@
  *
  * @category   Pimcore
  * @package    Tool
- * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
+ *
+ * @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
  * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
@@ -23,7 +24,6 @@ use Pimcore\Model;
  */
 class Lock extends Model\AbstractModel
 {
-
     /**
      * @var string
      */
@@ -58,6 +58,8 @@ class Lock extends Model\AbstractModel
 
     /**
      * @param string $key
+     * @param int $expire
+     * @param int $refreshInterval
      */
     public static function acquire($key, $expire = 120, $refreshInterval = 1)
     {
@@ -80,6 +82,7 @@ class Lock extends Model\AbstractModel
 
     /**
      * @param string $key
+     *
      * @return bool
      */
     public static function lock($key)
@@ -92,6 +95,7 @@ class Lock extends Model\AbstractModel
     /**
      * @param $key
      * @param int $expire
+     *
      * @return mixed
      */
     public static function isLocked($key, $expire = 120)
@@ -103,6 +107,7 @@ class Lock extends Model\AbstractModel
 
     /**
      * @param $key
+     *
      * @return Lock
      */
     public static function get($key)
@@ -113,9 +118,6 @@ class Lock extends Model\AbstractModel
         return $lock;
     }
 
-    /**
-     *
-     */
     public static function releaseAll()
     {
         $locks = self::$acquiredLocks;

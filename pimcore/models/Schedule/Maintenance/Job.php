@@ -10,170 +10,85 @@
  *
  * @category   Pimcore
  * @package    Schedule
- * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
+ *
+ * @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
  * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Schedule\Maintenance;
 
-use Pimcore\Model;
-use Pimcore\Model\Tool;
+use Pimcore\Model\Tool\Lock;
 
 class Job
 {
-
     /**
      * @var string
      */
-    public $id;
+    private $id;
 
-    /**
-     * @var bool
-     */
-    public $locked = false;
-
-    /**
-     * @var object
-     */
-    public $object;
-
-    /**
-     * @var string
-     */
-    public $method;
     /**
      * @var array
      */
-    public $arguments;
-
-    public function __construct($id, $object, $method, $arguments=null)
-    {
-        $this->setId($id);
-        $this->setObject($object);
-        $this->setMethod($method);
-        $this->setArguments($arguments);
-    }
+    private $callable;
 
     /**
-     * execute job
-     * @return mixed
+     * @var array
      */
-    public function execute()
-    {
-        if (method_exists($this->getObject(), $this->getMethod())) {
-            $arguments = $this->getArguments();
-            if (!is_array($arguments)) {
-                $arguments = [];
-            }
-
-            return call_user_func_array([$this->getObject(), $this->getMethod()], $arguments);
-        }
-    }
-
-    public function getLockKey()
-    {
-        return "maintenance-job-" . $this->getId();
-    }
+    private $arguments = [];
 
     /**
-     * create lock file
-     * @return void
+     * @param string $id
+     * @param mixed $callable
+     * @param array|null $arguments
      */
-    public function lock()
+    public function __construct(string $id, $callable, array $arguments = [])
     {
-        Tool\Lock::lock($this->getLockKey());
+        $this->id        = $id;
+        $this->callable  = $callable;
+        $this->arguments = $arguments;
     }
 
-    /**
-     * delete lock file
-     * @return void
-     */
-    public function unlock()
+    public static function fromMethodCall(string $id, $object, string $method, array $arguments = []): Job
     {
-        Tool\Lock::release($this->getLockKey());
+        return new static($id, [$object, $method], $arguments);
     }
 
-    /**
-     * @return bool
-     */
-    public function isLocked()
+    public static function fromClosure(string $id, \Closure $closure, array $arguments = []): Job
     {
-        return Tool\Lock::isLocked($this->getLockKey(), 86400); // 24h expire
+        return new static($id, $closure, $arguments);
     }
 
-    /**
-     * @param  string $id
-     * @return $this
-     */
-    public function setId($id)
-    {
-        $this->id = $id;
-
-        return $this;
-    }
-
-    /**
-     * @return string
-     */
-    public function getId()
+    public function getId(): string
     {
         return $this->id;
     }
 
-    /**
-     * @param  object $object
-     * @return void
-     */
-    public function setObject($object)
+    public function getLockKey(): string
     {
-        $this->object = $object;
-
-        return $this;
+        return 'maintenance-job-' . $this->getId();
     }
 
-    /**
-     * @return object
-     */
-    public function getObject()
+    public function lock()
     {
-        return $this->object;
+        Lock::lock($this->getLockKey());
     }
 
-    /**
-     * @param  string $method
-     * @return void
-     */
-    public function setMethod($method)
+    public function unlock()
     {
-        $this->method = $method;
-
-        return $this;
+        Lock::release($this->getLockKey());
     }
 
-    /**
-     * @return string
-     */
-    public function getMethod()
+    public function isLocked(): bool
     {
-        return $this->method;
+        return Lock::isLocked($this->getLockKey(), 86400); // 24h expire
     }
 
-    /**
-     * @return array
-     */
-    public function getArguments()
+    public function execute()
     {
-        return $this->arguments;
-    }
+        if (!is_callable($this->callable)) {
+            return null;
+        }
 
-    /**
-     * @param  array $args
-     * @return void
-     */
-    public function setArguments($args)
-    {
-        $this->arguments = $args;
-
-        return $this;
+        return call_user_func_array($this->callable, $this->arguments ?? []);
     }
 }

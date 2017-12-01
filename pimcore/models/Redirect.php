@@ -10,7 +10,8 @@
  *
  * @category   Pimcore
  * @package    Redirect
- * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
+ *
+ * @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
  * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
@@ -23,9 +24,8 @@ use Pimcore\Logger;
  */
 class Redirect extends AbstractModel
 {
-
     /**
-     * @var integer
+     * @var int
      */
     public $id;
 
@@ -80,29 +80,29 @@ class Redirect extends AbstractModel
     public $expiry;
 
     /**
-     * @var integer
+     * @var int
      */
     public $creationDate;
 
     /**
-     * @var integer
+     * @var int
      */
     public $modificationDate;
-
 
     /**
      * StatusCodes
      */
     public static $statusCodes = [
-        "300" => "Multiple Choices",
-        "301" => "Moved Permanently",
-        "302" => "Found",
-        "303" => "See Other",
-        "307" => "Temporary Redirect"
+        '300' => 'Multiple Choices',
+        '301' => 'Moved Permanently',
+        '302' => 'Found',
+        '303' => 'See Other',
+        '307' => 'Temporary Redirect'
     ];
 
     /**
-     * @param integer $id
+     * @param int $id
+     *
      * @return Redirect
      */
     public static function getById($id)
@@ -125,9 +125,8 @@ class Redirect extends AbstractModel
         return $redirect;
     }
 
-
     /**
-     * @return integer
+     * @return int
      */
     public function getId()
     {
@@ -151,7 +150,8 @@ class Redirect extends AbstractModel
     }
 
     /**
-     * @param integer $id
+     * @param int $id
+     *
      * @return $this
      */
     public function setId($id)
@@ -163,6 +163,7 @@ class Redirect extends AbstractModel
 
     /**
      * @param string $source
+     *
      * @return $this
      */
     public function setSource($source)
@@ -174,7 +175,8 @@ class Redirect extends AbstractModel
 
     /**
      * @param string $target
-     * @return void
+     *
+     * @return $this
      */
     public function setTarget($target)
     {
@@ -184,8 +186,9 @@ class Redirect extends AbstractModel
     }
 
     /**
-     * @param integer $priority
-     * @return void
+     * @param int $priority
+     *
+     * @return $this
      */
     public function setPriority($priority)
     {
@@ -197,7 +200,7 @@ class Redirect extends AbstractModel
     }
 
     /**
-     * @return integer
+     * @return int
      */
     public function getPriority()
     {
@@ -205,8 +208,9 @@ class Redirect extends AbstractModel
     }
 
     /**
-     * @param integer $statusCode
-     * @return void
+     * @param int $statusCode
+     *
+     * @return $this
      */
     public function setStatusCode($statusCode)
     {
@@ -218,7 +222,7 @@ class Redirect extends AbstractModel
     }
 
     /**
-     * @return integer
+     * @return int
      */
     public function getStatusCode()
     {
@@ -232,21 +236,18 @@ class Redirect extends AbstractModel
     {
         $statusCode = $this->getStatusCode();
         if (empty($statusCode)) {
-            $statusCode = "301";
+            $statusCode = '301';
         }
 
-        return "HTTP/1.1 " . $statusCode . " " . self::$statusCodes[$statusCode];
+        return 'HTTP/1.1 ' . $statusCode . ' ' . self::$statusCodes[$statusCode];
     }
 
-    /**
-     * @return void
-     */
     public function clearDependentCache()
     {
 
         // this is mostly called in Redirect\Dao not here
         try {
-            \Pimcore\Cache::clearTag("redirect");
+            \Pimcore\Cache::clearTag('redirect');
         } catch (\Exception $e) {
             Logger::crit($e);
         }
@@ -254,6 +255,7 @@ class Redirect extends AbstractModel
 
     /**
      * @param $expiry
+     *
      * @return $this
      */
     public function setExpiry($expiry)
@@ -274,13 +276,10 @@ class Redirect extends AbstractModel
         return $this->expiry;
     }
 
-    /**
-     *
-     */
     public static function maintenanceCleanUp()
     {
         $list = new Redirect\Listing();
-        $list->setCondition("expiry < " . time() . " AND expiry IS NOT NULL AND expiry != ''");
+        $list->setCondition('expiry < ' . time() . " AND expiry IS NOT NULL AND expiry != ''");
         $list->load();
 
         foreach ($list->getRedirects() as $redirect) {
@@ -291,6 +290,7 @@ class Redirect extends AbstractModel
 
     /**
      * @param $sourceEntireUrl
+     *
      * @return $this
      */
     public function setSourceEntireUrl($sourceEntireUrl)
@@ -305,7 +305,7 @@ class Redirect extends AbstractModel
     }
 
     /**
-     * @return boolean
+     * @return bool
      */
     public function getSourceEntireUrl()
     {
@@ -313,7 +313,7 @@ class Redirect extends AbstractModel
     }
 
     /**
-     * @return boolean
+     * @return bool
      */
     public function getActive()
     {
@@ -322,6 +322,7 @@ class Redirect extends AbstractModel
 
     /**
      * @param $active
+     *
      * @return $this
      */
     public function setActive($active)
@@ -337,6 +338,7 @@ class Redirect extends AbstractModel
 
     /**
      * @param $sourceSite
+     *
      * @return $this
      */
     public function setSourceSite($sourceSite)
@@ -360,6 +362,7 @@ class Redirect extends AbstractModel
 
     /**
      * @param $targetSite
+     *
      * @return $this
      */
     public function setTargetSite($targetSite)
@@ -383,6 +386,7 @@ class Redirect extends AbstractModel
 
     /**
      * @param $passThroughParameters
+     *
      * @return Redirect
      */
     public function setPassThroughParameters($passThroughParameters)
@@ -397,7 +401,7 @@ class Redirect extends AbstractModel
     }
 
     /**
-     * @return boolean
+     * @return bool
      */
     public function getPassThroughParameters()
     {
@@ -406,6 +410,7 @@ class Redirect extends AbstractModel
 
     /**
      * @param $modificationDate
+     *
      * @return $this
      */
     public function setModificationDate($modificationDate)
@@ -425,6 +430,7 @@ class Redirect extends AbstractModel
 
     /**
      * @param $creationDate
+     *
      * @return $this
      */
     public function setCreationDate($creationDate)

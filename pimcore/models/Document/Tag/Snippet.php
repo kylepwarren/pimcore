@@ -10,27 +10,28 @@
  *
  * @category   Pimcore
  * @package    Document
- * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
+ *
+ * @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
  * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Document\Tag;
 
-use Pimcore\Model;
 use Pimcore\Cache;
-use Pimcore\Model\Document;
 use Pimcore\Logger;
+use Pimcore\Model;
+use Pimcore\Model\Document;
+use Pimcore\Tool\DeviceDetector;
 
 /**
  * @method \Pimcore\Model\Document\Tag\Dao getDao()
  */
 class Snippet extends Model\Document\Tag
 {
-
     /**
      * Contains the ID of the linked snippet
      *
-     * @var integer
+     * @var int
      */
     public $id;
 
@@ -41,18 +42,19 @@ class Snippet extends Model\Document\Tag
      */
     public $snippet;
 
-
     /**
      * @see Document\Tag\TagInterface::getType
+     *
      * @return string
      */
     public function getType()
     {
-        return "snippet";
+        return 'snippet';
     }
 
     /**
      * @see Document\Tag\TagInterface::getData
+     *
      * @return mixed
      */
     public function getData()
@@ -85,8 +87,8 @@ class Snippet extends Model\Document\Tag
     {
         if ($this->snippet instanceof Document\Snippet) {
             return [
-                "id" => $this->id,
-                "path" => $this->snippet->getFullPath()
+                'id' => $this->id,
+                'path' => $this->snippet->getFullPath()
             ];
         }
 
@@ -95,62 +97,75 @@ class Snippet extends Model\Document\Tag
 
     /**
      * @see Document\Tag\TagInterface::frontend
+     *
      * @return string
      */
     public function frontend()
     {
-        if ($this->getView() instanceof \Zend_View) {
-            try {
-                if ($this->snippet instanceof Document\Snippet) {
-                    $params = $this->options;
-                    $params["document"] = $this->snippet;
+        // TODO inject area handler via DI when tags are built through container
+        $tagHandler = \Pimcore::getContainer()->get('pimcore.document.tag.handler');
 
-                    if ($this->snippet->isPublished()) {
+        if (!$tagHandler->supports($this->view)) {
+            return null;
+        }
 
-                        // check if output-cache is enabled, if so, we're also using the cache here
-                        $cacheKey = null;
-                        if ($cacheConfig = \Pimcore\Tool\Frontend::isOutputCacheEnabled()) {
+        try {
+            if ($this->snippet instanceof Document\Snippet) {
+                $params = $this->options;
+                $params['document'] = $this->snippet;
 
-                            // cleanup params to avoid serializing Element\ElementInterface objects
-                            $cacheParams = $params;
-                            array_walk($cacheParams, function (&$value, $key) {
-                                if ($value instanceof Model\Element\ElementInterface) {
-                                    $value = $value->getId();
-                                }
-                            });
+                if ($this->snippet->isPublished()) {
 
-                            $cacheKey = "tag_snippet__" . md5(serialize($cacheParams));
-                            if ($content = Cache::load($cacheKey)) {
-                                return $content;
+                    // check if output-cache is enabled, if so, we're also using the cache here
+                    $cacheKey = null;
+                    if ($cacheConfig = \Pimcore\Tool\Frontend::isOutputCacheEnabled()) {
+
+                        // cleanup params to avoid serializing Element\ElementInterface objects
+                        $cacheParams = $params;
+                        array_walk($cacheParams, function (&$value, $key) {
+                            if ($value instanceof Model\Element\ElementInterface) {
+                                $value = $value->getId();
                             }
+                        });
+
+                        $cacheKey = 'tag_snippet__' . md5(serialize($cacheParams));
+                        if ($content = Cache::load($cacheKey)) {
+                            return $content;
                         }
-
-                        $content = $this->getView()->action($this->snippet->getAction(), $this->snippet->getController(), $this->snippet->getModule(), $params);
-
-                        // write contents to the cache, if output-cache is enabled
-                        if ($cacheConfig) {
-                            Cache::save($content, $cacheKey, ["output", "output_inline"], $cacheConfig["lifetime"]);
-                        }
-
-                        return $content;
                     }
 
-                    return "";
+                    $content = $tagHandler->renderAction(
+                        $this->view,
+                        $this->snippet->getController(),
+                        $this->snippet->getAction(),
+                        $this->snippet->getModule(),
+                        $params
+                    );
+
+                    // write contents to the cache, if output-cache is enabled
+                    if ($cacheConfig && !DeviceDetector::getInstance()->wasUsed()) {
+                        Cache::save($content, $cacheKey, ['output', 'output_inline'], $cacheConfig['lifetime']);
+                    }
+
+                    return $content;
                 }
-            } catch (\Exception $e) {
-                if (\Pimcore::inDebugMode()) {
-                    return "ERROR: " . $e->getMessage() . " (for details see debug.log)";
-                }
-                Logger::error($e);
+
+                return '';
             }
-        } else {
-            return null;
+        } catch (\Exception $e) {
+            Logger::error($e);
+
+            if (\Pimcore::inDebugMode()) {
+                return 'ERROR: ' . $e->getMessage() . ' (for details see log files in /var/logs)';
+            }
         }
     }
 
     /**
      * @see Document\Tag\TagInterface::setDataFromResource
+     *
      * @param mixed $data
+     *
      * @return $this
      */
     public function setDataFromResource($data)
@@ -165,8 +180,10 @@ class Snippet extends Model\Document\Tag
 
     /**
      * @see Document\Tag\TagInterface::setDataFromEditmode
+     *
      * @param mixed $data
-     * @return void
+     *
+     * @return $this
      */
     public function setDataFromEditmode($data)
     {
@@ -179,7 +196,7 @@ class Snippet extends Model\Document\Tag
     }
 
     /**
-     * @return boolean
+     * @return bool
      */
     public function isEmpty()
     {
@@ -190,7 +207,6 @@ class Snippet extends Model\Document\Tag
         return true;
     }
 
-
     /**
      * @return array
      */
@@ -199,40 +215,40 @@ class Snippet extends Model\Document\Tag
         $dependencies = [];
 
         if ($this->snippet instanceof Document\Snippet) {
-            $key = "document_" . $this->snippet->getId();
+            $key = 'document_' . $this->snippet->getId();
 
             $dependencies[$key] = [
-                "id" => $this->snippet->getId(),
-                "type" => "document"
+                'id' => $this->snippet->getId(),
+                'type' => 'document'
             ];
         }
 
         return $dependencies;
     }
 
-
     /**
      * @param Model\Webservice\Data\Document\Element $wsElement
+     * @param $document
      * @param mixed $params
      * @param null $idMapper
+     *
      * @throws \Exception
      */
     public function getFromWebserviceImport($wsElement, $document = null, $params = [], $idMapper = null)
     {
         $data = $wsElement->value;
-        if ($data->id !==null) {
+        if ($data->id !== null) {
             $this->id = $data->id;
             if (is_numeric($this->id)) {
                 $this->snippet = Document\Snippet::getById($this->id);
                 if (!$this->snippet instanceof Document\Snippet) {
-                    throw new \Exception("cannot get values from web service import - referenced snippet with id [ " . $this->id . " ] is unknown");
+                    throw new \Exception('cannot get values from web service import - referenced snippet with id [ ' . $this->id . ' ] is unknown');
                 }
             } else {
-                throw new \Exception("cannot get values from web service import - id is not valid");
+                throw new \Exception('cannot get values from web service import - id is not valid');
             }
         }
     }
-
 
     /**
      * @return array
@@ -241,7 +257,7 @@ class Snippet extends Model\Document\Tag
     {
         $finalVars = [];
         $parentVars = parent::__sleep();
-        $blockedVars = ["snippet"];
+        $blockedVars = ['snippet'];
         foreach ($parentVars as $key) {
             if (!in_array($key, $blockedVars)) {
                 $finalVars[] = $key;
@@ -253,15 +269,11 @@ class Snippet extends Model\Document\Tag
 
     /**
      * this method is called by Document\Service::loadAllDocumentFields() to load all lazy loading fields
-     *
-     * @return void
      */
     public function load()
     {
         $this->snippet = Document::getById($this->id);
     }
-
-
 
     /**
      * Rewrites id from source to target, $idMapping contains
@@ -273,14 +285,14 @@ class Snippet extends Model\Document\Tag
      *  "object" => array(...),
      *  "asset" => array(...)
      * )
+     *
      * @param array $idMapping
-     * @return void
      */
     public function rewriteIds($idMapping)
     {
         $id = $this->getId();
-        if (array_key_exists("document", $idMapping) && array_key_exists($id, $idMapping["document"])) {
-            $this->id = $idMapping["document"][$id];
+        if (array_key_exists('document', $idMapping) && array_key_exists($id, $idMapping['document'])) {
+            $this->id = $idMapping['document'][$id];
         }
     }
 

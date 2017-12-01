@@ -10,7 +10,8 @@
  *
  * @category   Pimcore
  * @package    Webservice
- * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
+ *
+ * @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
  * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
@@ -20,25 +21,31 @@ use Pimcore\Model;
 
 class File extends Model\Webservice\Data\Asset
 {
-    
     /**
      * @var string
      */
     public $data;
-    
-    
+
+    /**
+     * @param $object
+     * @param null $options
+     */
     public function map($object, $options = null)
     {
         parent::map($object, $options);
         if (is_array($options)) {
-            if ($options["LIGHT"]) {
+            if ($options['LIGHT']) {
                 return;
             }
         }
         $this->data = base64_encode($object->getData());
     }
 
-
+    /**
+     * @param $object
+     * @param bool $disableMappingExceptions
+     * @param null $idMapper
+     */
     public function reverseMap($object, $disableMappingExceptions = false, $idMapper = null)
     {
         $data = base64_decode($this->data);

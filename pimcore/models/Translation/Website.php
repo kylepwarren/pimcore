@@ -10,17 +10,23 @@
  *
  * @category   Pimcore
  * @package    Translation
- * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
+ *
+ * @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
  * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Translation;
-
-use Pimcore\Model;
 
 /**
  * @method \Pimcore\Model\Translation\Website\Dao getDao()
  */
 class Website extends AbstractTranslation
 {
+    /**
+     * @return array
+     */
+    public static function getLanguages(): array
+    {
+        return \Pimcore\Tool::getValidLanguages();
+    }
 }

@@ -10,28 +10,27 @@
  *
  * @category   Pimcore
  * @package    Dependency
- * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
+ *
+ * @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
  * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Dependency;
 
+use Pimcore\Logger;
 use Pimcore\Model;
 use Pimcore\Model\Element;
-use Pimcore\Logger;
 
 /**
  * @property \Pimcore\Model\Dependency $model
  */
 class Dao extends Model\Dao\AbstractDao
 {
-
     /**
      * Loads the relations for the given sourceId and type
      *
-     * @param integer $id
+     * @param int $id
      * @param string $type
-     * @return void
      */
     public function getBySourceId($id = null, $type = null)
     {
@@ -41,23 +40,22 @@ class Dao extends Model\Dao\AbstractDao
         }
 
         // requires
-        $data = $this->db->fetchAll("SELECT * FROM dependencies WHERE sourceid = ? AND sourcetype = ?", [$this->model->getSourceId(), $this->model->getSourceType()]);
+        $data = $this->db->fetchAll('SELECT * FROM dependencies WHERE sourceid = ? AND sourcetype = ?', [$this->model->getSourceId(), $this->model->getSourceType()]);
 
         if (is_array($data) && count($data) > 0) {
             foreach ($data as $d) {
-                $this->model->addRequirement($d["targetid"], $d["targettype"]);
+                $this->model->addRequirement($d['targetid'], $d['targettype']);
             }
         }
 
         // required by
-        $data = [];
-        $data = $this->db->fetchAll("SELECT * FROM dependencies WHERE targetid = ? AND targettype = ?", [$this->model->getSourceId(), $this->model->getSourceType()]);
+        $data = $this->db->fetchAll('SELECT * FROM dependencies WHERE targetid = ? AND targettype = ?', [$this->model->getSourceId(), $this->model->getSourceType()]);
 
         if (is_array($data) && count($data) > 0) {
             foreach ($data as $d) {
                 $this->model->requiredBy[] = [
-                    "id" => $d["sourceid"],
-                    "type" => $d["sourcetype"]
+                    'id' => $d['sourceid'],
+                    'type' => $d['sourcetype']
                 ];
             }
         }
@@ -65,6 +63,7 @@ class Dao extends Model\Dao\AbstractDao
 
     /**
      * Clear all relations in the database
+     *
      * @param Element\ElementInterface $element
      */
     public function cleanAllForElement($element)
@@ -74,7 +73,7 @@ class Dao extends Model\Dao\AbstractDao
             $type = Element\Service::getElementType($element);
 
             //schedule for sanity check
-            $data = $this->db->fetchAll("SELECT * FROM dependencies WHERE targetid = ? AND targettype = ?", [$id, $type]);
+            $data = $this->db->fetchAll('SELECT * FROM dependencies WHERE targetid = ? AND targettype = ?', [$id, $type]);
             if (is_array($data)) {
                 foreach ($data as $row) {
                     $sanityCheck = new Element\Sanitycheck();
@@ -84,23 +83,20 @@ class Dao extends Model\Dao\AbstractDao
                 }
             }
 
-            $this->db->delete("dependencies", $this->db->quoteInto("sourceid = ?", $id) . " AND " . $this->db->quoteInto("sourcetype = ?", $type));
-            $this->db->delete("dependencies", $this->db->quoteInto("targetid = ?", $id) . " AND " . $this->db->quoteInto("targettype = ?", $type));
+            $this->db->delete('dependencies', ['sourceid' => $id, 'sourcetype' => $type]);
+            $this->db->delete('dependencies', ['targetid' => $id, 'targettype' => $type]);
         } catch (\Exception $e) {
             Logger::error($e);
         }
     }
 
-
     /**
      * Clear all relations in the database for current source id
-     *
-     * @return void
      */
     public function clear()
     {
         try {
-            $this->db->delete("dependencies", $this->db->quoteInto("sourceid = ?", $this->model->getSourceId()) . " AND " . $this->db->quoteInto("sourcetype = ?", $this->model->getSourceType()));
+            $this->db->delete('dependencies', ['sourceid' => $this->model->getSourceId(), 'sourcetype' => $this->model->getSourceType()]);
         } catch (\Exception $e) {
             Logger::error($e);
         }
@@ -108,18 +104,16 @@ class Dao extends Model\Dao\AbstractDao
 
     /**
      * Save to database
-     *
-     * @return void
      */
     public function save()
     {
         foreach ($this->model->getRequires() as $r) {
-            if ($r["id"] && $r["type"]) {
-                $this->db->insert("dependencies", [
-                    "sourceid" => $this->model->getSourceId(),
-                    "sourcetype" => $this->model->getSourceType(),
-                    "targetid" => $r["id"],
-                    "targettype" => $r["type"]
+            if ($r['id'] && $r['type']) {
+                $this->db->insert('dependencies', [
+                    'sourceid' => $this->model->getSourceId(),
+                    'sourcetype' => $this->model->getSourceType(),
+                    'targetid' => $r['id'],
+                    'targettype' => $r['type']
                 ]);
             }
         }

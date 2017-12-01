@@ -8,23 +8,22 @@
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
+ * @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
  * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\WorkflowManagement\Workflow;
 
+use Pimcore\Logger;
 use Pimcore\Model\Element;
 use Pimcore\Model\User;
-use Pimcore\Logger;
 
 class Service
 {
-
-
     /**
      * @param $fc - The field configuration from the Workflow
      * @param $value - The value
+     *
      * @return array
      */
     public static function createNoteData($fc, $value)
@@ -64,13 +63,18 @@ class Service
         return $data;
     }
 
-
+    /**
+     * @param $data
+     * @param $pimcoreTagName
+     *
+     * @return mixed|null
+     */
     public static function getDataFromEditmode($data, $pimcoreTagName)
     {
-        $tagClass = '\\Pimcore\\Model\\Object\\ClassDefinition\\Data\\' . ucfirst($pimcoreTagName);
+        $tagClass = '\\Pimcore\\Model\\DataObject\\ClassDefinition\\Data\\' . ucfirst($pimcoreTagName);
         if (\Pimcore\Tool::classExists($tagClass)) {
             /**
-             * @var \Pimcore\Model\Object\ClassDefinition\Data $tag
+             * @var \Pimcore\Model\DataObject\ClassDefinition\Data $tag
              */
             $tag = new $tagClass();
 
@@ -83,14 +87,16 @@ class Service
         return null;
     }
 
-
     /**
      * Creates a note for an action with a transition
+     *
      * @param Element\AbstractElement $element
      * @param string $type
      * @param string $title
      * @param string $description
      * @param array $noteData
+     * @param null $user
+     *
      * @return Element\Note $note
      */
     public static function createActionNote($element, $type, $title, $description, $noteData, $user=null)
@@ -110,7 +116,15 @@ class Service
 
         if (is_array($noteData)) {
             foreach ($noteData as $row) {
-                $note->addData($row['key'], $row['type'], $row['value']);
+                if ($row['key'] === 'noteDate' && $row['type'] === 'date') {
+                    /**
+                     * @var \Pimcore\Date $date
+                     */
+                    $date = $row['value'];
+                    $note->setDate($date->getTimestamp());
+                } else {
+                    $note->addData($row['key'], $row['type'], $row['value']);
+                }
             }
         }
 
@@ -119,9 +133,9 @@ class Service
         return $note;
     }
 
-
     /**
      * Sends an email
+     *
      * @param array $users
      * @param Element\Note $note
      */
@@ -129,7 +143,7 @@ class Service
     {
         //try {
 
-            $recipients = self::getNotificationUsers($users);
+        $recipients = self::getNotificationUsers($users);
         if (!count($recipients)) {
             return;
         }
@@ -137,18 +151,18 @@ class Service
         $mail = new \Pimcore\Mail();
         foreach ($recipients as $user) {
             /**
-                 * @var $user User
-                 */
-                $mail->addTo($user->getEmail(), $user->getName());
+             * @var $user User
+             */
+            $mail->addTo($user->getEmail(), $user->getName());
         }
 
         $element = Element\Service::getElementById($note->getCtype(), $note->getCid());
 
         $mail->setSubject("[pimcore] {$note->getTitle()}, {$element->getType()} [{$element->getId()}]");
 
-            //TODO decide some body text/html
+        //TODO decide some body text/html
 
-            $mail->setBodyText($note->getDescription());
+        $mail->setBodyText($note->getDescription());
 
         $mail->send();
 
@@ -157,11 +171,11 @@ class Service
        // }
     }
 
-
     /**
      * Returns a list of users given an array of ID's
      * if an ID is a role, all users associated with that role
      * will also be returned.
+     *
      * @param $userIds
      */
     private static function getNotificationUsers($userIds)

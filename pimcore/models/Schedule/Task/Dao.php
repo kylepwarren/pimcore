@@ -10,7 +10,8 @@
  *
  * @category   Pimcore
  * @package    Schedule
- * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
+ *
+ * @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
  * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
@@ -23,25 +24,26 @@ use Pimcore\Model;
  */
 class Dao extends Model\Dao\AbstractDao
 {
-
     /**
      * @param $id
+     *
      * @throws \Exception
      */
     public function getById($id)
     {
-        $data = $this->db->fetchRow("SELECT * FROM schedule_tasks WHERE id = ?", $id);
-        if (!$data["id"]) {
-            throw new \Exception("there is no task for the requested id");
+        $data = $this->db->fetchRow('SELECT * FROM schedule_tasks WHERE id = ?', $id);
+        if (!$data['id']) {
+            throw new \Exception('there is no task for the requested id');
         }
         $this->assignVariablesToModel($data);
     }
 
-
     /**
      * Save object to database
      *
-     * @return void
+     * @return bool
+     *
+     * @todo: update() and create() don't return anything
      */
     public function save()
     {
@@ -54,12 +56,10 @@ class Dao extends Model\Dao\AbstractDao
 
     /**
      * Create a new record for the object in database
-     *
-     * @return boolean
      */
     public function create()
     {
-        $this->db->insert("schedule_tasks", []);
+        $this->db->insert('schedule_tasks', []);
         $this->model->setId($this->db->lastInsertId());
 
         $this->save();
@@ -67,15 +67,14 @@ class Dao extends Model\Dao\AbstractDao
 
     /**
      * Save changes to database, it's an good idea to use save() instead
-     *
-     * @return void
      */
     public function update()
     {
         $site = get_object_vars($this->model);
+        $data = [];
 
         foreach ($site as $key => $value) {
-            if (in_array($key, $this->getValidTableColumns("schedule_tasks"))) {
+            if (in_array($key, $this->getValidTableColumns('schedule_tasks'))) {
                 if (is_array($value) || is_object($value)) {
                     $value = \Pimcore\Tool\Serialize::serialize($value);
                 } elseif (is_bool($value)) {
@@ -85,16 +84,14 @@ class Dao extends Model\Dao\AbstractDao
             }
         }
 
-        $this->db->update("schedule_tasks", $data, $this->db->quoteInto("id = ?", $this->model->getId()));
+        $this->db->update('schedule_tasks', $data, ['id' => $this->model->getId()]);
     }
 
     /**
      * Deletes object from database
-     *
-     * @return void
      */
     public function delete()
     {
-        $this->db->delete("schedule_tasks", $this->db->quoteInto("id = ?", $this->model->getId()));
+        $this->db->delete('schedule_tasks', ['id' => $this->model->getId()]);
     }
 }

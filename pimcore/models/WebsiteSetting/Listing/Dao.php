@@ -8,7 +8,7 @@
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
+ * @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
  * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
@@ -21,7 +21,6 @@ use Pimcore\Model;
  */
 class Dao extends Model\Listing\Dao\AbstractDao
 {
-
     /**
      * Loads a list of static routes for the specified parameters, returns an array of Staticroute elements
      *
@@ -29,7 +28,7 @@ class Dao extends Model\Listing\Dao\AbstractDao
      */
     public function load()
     {
-        $sql = "SELECT id FROM website_settings" . $this->getCondition() . $this->getOrder() . $this->getOffsetLimit();
+        $sql = 'SELECT id FROM website_settings' . $this->getCondition() . $this->getOrder() . $this->getOffsetLimit();
         $settingsData = $this->db->fetchCol($sql, $this->model->getConditionVariables());
 
         $settings = [];
@@ -42,11 +41,15 @@ class Dao extends Model\Listing\Dao\AbstractDao
         return $settings;
     }
 
-
+    /**
+     * @return int
+     *
+     * @todo: $amount could not be defined, so this could cause an issue
+     */
     public function getTotalCount()
     {
         try {
-            $amount = (int) $this->db->fetchOne("SELECT COUNT(*) as amount FROM website_settings " . $this->getCondition(), $this->model->getConditionVariables());
+            $amount = (int) $this->db->fetchOne('SELECT COUNT(*) as amount FROM website_settings ' . $this->getCondition(), $this->model->getConditionVariables());
         } catch (\Exception $e) {
         }
 

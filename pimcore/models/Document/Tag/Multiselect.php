@@ -10,7 +10,8 @@
  *
  * @category   Pimcore
  * @package    Document
- * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
+ *
+ * @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
  * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
@@ -23,7 +24,6 @@ use Pimcore\Model;
  */
 class Multiselect extends Model\Document\Tag
 {
-
     /**
      * Contains the current selected values
      *
@@ -32,16 +32,18 @@ class Multiselect extends Model\Document\Tag
     public $values = [];
 
     /**
-     * @see Document\Tag\TagInterface::getType
+     * @see TagInterface::getType
+     *
      * @return string
      */
     public function getType()
     {
-        return "multiselect";
+        return 'multiselect';
     }
 
     /**
-     * @see Document\Tag\TagInterface::getData
+     * @see TagInterface::getData
+     *
      * @return mixed
      */
     public function getData()
@@ -50,22 +52,28 @@ class Multiselect extends Model\Document\Tag
     }
 
     /**
-     * @see Document\Tag\TagInterface::frontend
+     * @see TagInterface::frontend
+     *
      * @return string
      */
     public function frontend()
     {
-        return implode(",", $this->values);
-    }
-
-    public function getDataEditmode()
-    {
-        return implode(",", $this->values);
+        return implode(',', $this->values);
     }
 
     /**
-     * @see Document\Tag\TagInterface::setDataFromResource
+     * @return string
+     */
+    public function getDataEditmode()
+    {
+        return implode(',', $this->values);
+    }
+
+    /**
+     * @see TagInterface::setDataFromResource
+     *
      * @param mixed $data
+     *
      * @return $this
      */
     public function setDataFromResource($data)
@@ -76,8 +84,10 @@ class Multiselect extends Model\Document\Tag
     }
 
     /**
-     * @see Document\Tag\TagInterface::setDataFromEditmode
+     * @see TagInterface::setDataFromEditmode
+     *
      * @param mixed $data
+     *
      * @return $this
      */
     public function setDataFromEditmode($data)
@@ -85,7 +95,7 @@ class Multiselect extends Model\Document\Tag
         if (empty($data)) {
             $this->values = [];
         } elseif (is_string($data)) {
-            $this->values = explode(",", $data);
+            $this->values = explode(',', $data);
         } elseif (is_array($data)) {
             $this->values = $data;
         }
@@ -94,7 +104,7 @@ class Multiselect extends Model\Document\Tag
     }
 
     /**
-     * @return boolean
+     * @return bool
      */
     public function isEmpty()
     {
@@ -103,8 +113,10 @@ class Multiselect extends Model\Document\Tag
 
     /**
      * @param Model\Webservice\Data\Document\Element $wsElement
+     * @param $document
      * @param mixed $params
      * @param null $idMapper
+     *
      * @throws \Exception
      */
     public function getFromWebserviceImport($wsElement, $document = null, $params = [], $idMapper = null)
@@ -113,7 +125,7 @@ class Multiselect extends Model\Document\Tag
         if ($data->values === null or is_array($data->values)) {
             $this->values = $data->values;
         } else {
-            throw new \Exception("cannot get values from web service import - invalid data");
+            throw new \Exception('cannot get values from web service import - invalid data');
         }
     }
 }

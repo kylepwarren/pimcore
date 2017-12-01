@@ -8,15 +8,17 @@
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
+ * @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
  * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Tool;
 
+/**
+ * @deprecated
+ */
 class StopWatch
 {
-
     /**
      * @var array
      */
@@ -30,47 +32,48 @@ class StopWatch
     /**
      * @param $component string
      * @static
-     * @return void
      */
     public static function start($component = 'default')
     {
-        self::$startTime[$component] = self::microtime_float();
+        self::$startTime[$component] = microtime(true);
         self::$laps[$component] = [];
     }
 
     /**
      * @static
+     *
      * @param $label
      * @param string $component
-     * @return void
      */
     public static function lap($label, $component = 'default')
     {
-        self::$laps[$component][$label] = self::microtime_float();
+        self::$laps[$component][$label] = microtime(true);
     }
 
     /**
      * @static
+     *
      * @param bool $html
      * @param string $component
+     *
      * @return string
      */
     public static function getTime($html = false, $component = 'default')
     {
-        $text = "";
+        $text = '';
 
         $lastLap = self::$startTime[$component];
         foreach (self::$laps[$component] as $label => $time) {
-            $text .= "Lap " . $label . "\tAccum: " . ($time - self::$startTime[$component]) . "\t Self: " . ($time - $lastLap)
+            $text .= 'Lap ' . $label . "\tAccum: " . ($time - self::$startTime[$component]) . "\t Self: " . ($time - $lastLap)
                 . "\n";
 
             $lastLap = $time;
         }
 
-        $text .= "Total Time: " . (self::microtime_float() - self::$startTime[$component]) . "\n";
+        $text .= 'Total Time (' . $component . '): ' . (microtime(true) - self::$startTime[$component]) . "\n";
 
         if ($html) {
-            $text = "<pre>" . $text . "</pre>";
+            $text = '<pre>' . $text . '</pre>';
         }
 
         return $text;
@@ -78,9 +81,9 @@ class StopWatch
 
     /**
      * @static
+     *
      * @param string $component
      * @param bool $html
-     * @return void
      */
     public static function display($html = false, $component = 'default')
     {
@@ -88,7 +91,9 @@ class StopWatch
     }
 
     /**
+     * @deprecated
      * @static
+     *
      * @return float
      */
     public static function microtime_float()

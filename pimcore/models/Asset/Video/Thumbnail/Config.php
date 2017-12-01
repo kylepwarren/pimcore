@@ -10,7 +10,8 @@
  *
  * @category   Pimcore
  * @package    Asset
- * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
+ *
+ * @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
  * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
@@ -23,18 +24,17 @@ use Pimcore\Model;
  */
 class Config extends Model\AbstractModel
 {
-
     /**
      * format of array:
      * array(
-        array(
-            "method" => "myName",
-            "arguments" =>
-                array(
-                    "width" => 345,
-                    "height" => 200
-                )
-        )
+     array(
+     "method" => "myName",
+     "arguments" =>
+     array(
+     "width" => 345,
+     "height" => 200
+     )
+     )
      * )
      *
      * @var array
@@ -44,12 +44,12 @@ class Config extends Model\AbstractModel
     /**
      * @var string
      */
-    public $name = "";
+    public $name = '';
 
     /**
      * @var string
      */
-    public $description = "";
+    public $description = '';
 
     /**
      * @var int
@@ -73,23 +73,24 @@ class Config extends Model\AbstractModel
 
     /**
      * @param $name
+     *
      * @return null|Config
      */
     public static function getByName($name)
     {
-        $cacheKey = "videothumb_" . crc32($name);
+        $cacheKey = 'videothumb_' . crc32($name);
 
         try {
-            $thumbnail = \Zend_Registry::get($cacheKey);
+            $thumbnail = \Pimcore\Cache\Runtime::get($cacheKey);
             if (!$thumbnail) {
-                throw new \Exception("Thumbnail in registry is null");
+                throw new \Exception('Thumbnail in registry is null');
             }
         } catch (\Exception $e) {
             try {
                 $thumbnail = new self();
                 $thumbnail->getDao()->getByName($name);
 
-                \Zend_Registry::set($cacheKey, $thumbnail);
+                \Pimcore\Cache\Runtime::set($cacheKey, $thumbnail);
             } catch (\Exception $e) {
                 return null;
             }
@@ -104,16 +105,16 @@ class Config extends Model\AbstractModel
     public static function getPreviewConfig()
     {
         $config = new self();
-        $config->setName("pimcore-system-treepreview");
+        $config->setName('pimcore-system-treepreview');
         $config->setAudioBitrate(128);
         $config->setVideoBitrate(700);
 
         $config->setItems([
             [
-                "method" => "scaleByWidth",
-                "arguments" =>
+                'method' => 'scaleByWidth',
+                'arguments' =>
                 [
-                    "width" => 500
+                    'width' => 500
                 ]
             ]
         ]);
@@ -124,37 +125,36 @@ class Config extends Model\AbstractModel
     /**
      * @param  $name
      * @param  $parameters
+     *
      * @return bool
      */
     public function addItem($name, $parameters)
     {
         $this->items[] = [
-            "method" => $name,
-            "arguments" => $parameters
+            'method' => $name,
+            'arguments' => $parameters
         ];
 
         return true;
     }
 
     /**
-     * @param  $name
-     * @param  $parameters
+     * @param $position
+     * @param $name
+     * @param $parameters
+     *
      * @return bool
      */
     public function addItemAt($position, $name, $parameters)
     {
         array_splice($this->items, $position, 0, [[
-            "method" => $name,
-            "arguments" => $parameters
+            'method' => $name,
+            'arguments' => $parameters
         ]]);
 
         return true;
     }
 
-
-    /**
-     * @return void
-     */
     public function resetItems()
     {
         $this->items = [];
@@ -162,6 +162,7 @@ class Config extends Model\AbstractModel
 
     /**
      * @param $description
+     *
      * @return $this
      */
     public function setDescription($description)
@@ -181,6 +182,7 @@ class Config extends Model\AbstractModel
 
     /**
      * @param $items
+     *
      * @return $this
      */
     public function setItems($items)
@@ -200,6 +202,7 @@ class Config extends Model\AbstractModel
 
     /**
      * @param $name
+     *
      * @return $this
      */
     public function setName($name)
@@ -219,6 +222,7 @@ class Config extends Model\AbstractModel
 
     /**
      * @param $audioBitrate
+     *
      * @return $this
      */
     public function setAudioBitrate($audioBitrate)
@@ -238,6 +242,7 @@ class Config extends Model\AbstractModel
 
     /**
      * @param $videoBitrate
+     *
      * @return $this
      */
     public function setVideoBitrate($videoBitrate)
@@ -265,9 +270,9 @@ class Config extends Model\AbstractModel
         if (is_array($transformations) && count($transformations) > 0) {
             foreach ($transformations as $transformation) {
                 if (!empty($transformation)) {
-                    if (is_array($transformation["arguments"])) {
-                        foreach ($transformation["arguments"] as $key => $value) {
-                            if ($key == "width" || $key == "height") {
+                    if (is_array($transformation['arguments'])) {
+                        foreach ($transformation['arguments'] as $key => $value) {
+                            if ($key == 'width' || $key == 'height') {
                                 $dimensions[$key] = $value;
                             }
                         }

@@ -8,24 +8,24 @@
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
+ * @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
  * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Listing;
 
-use Pimcore\Model\AbstractModel;
 use Pimcore\Db;
+use Pimcore\Model\AbstractModel;
 
 /**
  * Class AbstractListing
  *
  * @package Pimcore\Model\Listing
- * @method \Zend_Db_Select getQuery()
+ *
+ * @method \Pimcore\Db\ZendCompatibility\QueryBuilder getQuery()
  */
 abstract class AbstractListing extends AbstractModel
 {
-
     /**
      * @var string|array
      */
@@ -37,12 +37,12 @@ abstract class AbstractListing extends AbstractModel
     protected $orderKey;
 
     /**
-     * @var integer
+     * @var int
      */
     protected $limit;
 
     /**
-     * @var integer
+     * @var int
      */
     protected $offset;
 
@@ -65,8 +65,8 @@ abstract class AbstractListing extends AbstractModel
      * @var array
      */
     protected $validOrders = [
-        "ASC",
-        "DESC"
+        'ASC',
+        'DESC'
     ];
 
     /**
@@ -76,7 +76,9 @@ abstract class AbstractListing extends AbstractModel
 
     /**
      * @abstract
+     *
      * @param  $key
+     *
      * @return bool
      */
     abstract public function isValidOrderKey($key);
@@ -107,6 +109,7 @@ abstract class AbstractListing extends AbstractModel
 
     /**
      * @param  $limit
+     *
      * @return $this
      */
     public function setLimit($limit)
@@ -120,6 +123,7 @@ abstract class AbstractListing extends AbstractModel
 
     /**
      * @param  $offset
+     *
      * @return $this
      */
     public function setOffset($offset)
@@ -133,6 +137,7 @@ abstract class AbstractListing extends AbstractModel
 
     /**
      * @param  $order
+     *
      * @return $this
      */
     public function setOrder($order)
@@ -168,6 +173,7 @@ abstract class AbstractListing extends AbstractModel
     /**
      * @param string|array $orderKey
      * @param bool $quote
+     *
      * @return $this
      */
     public function setOrderKey($orderKey, $quote = true)
@@ -190,7 +196,7 @@ abstract class AbstractListing extends AbstractModel
         if ($quote) {
             $tmpKeys = [];
             foreach ($this->orderKey as $key) {
-                $tmpKeys[] = "`" . $key . "`";
+                $tmpKeys[] = '`' . $key . '`';
             }
             $this->orderKey = $tmpKeys;
         }
@@ -202,6 +208,7 @@ abstract class AbstractListing extends AbstractModel
      * @param $key
      * @param null $value
      * @param string $concatenator
+     *
      * @return $this
      */
     public function addConditionParam($key, $value = null, $concatenator = 'AND')
@@ -260,11 +267,7 @@ abstract class AbstractListing extends AbstractModel
                 if (!$value['ignore-value']) {
                     if (is_array($value['value'])) {
                         foreach ($value['value'] as $k => $v) {
-                            if ($db->supportsParameters("named")) {
-                                $params[$k] = $v;
-                            } else {
-                                $params[] = $v;
-                            }
+                            $params[$k] = $v;
                         }
                     } else {
                         $params[] = $value['value'];
@@ -275,7 +278,6 @@ abstract class AbstractListing extends AbstractModel
             $this->setConditionVariables($params);
         }
 
-
         $condition = $this->condition . $conditionString;
 
         return $condition;
@@ -284,6 +286,7 @@ abstract class AbstractListing extends AbstractModel
     /**
      * @param $condition
      * @param null $conditionVariables
+     *
      * @return $this
      */
     public function setCondition($condition, $conditionVariables = null)
@@ -319,6 +322,7 @@ abstract class AbstractListing extends AbstractModel
     /**
      * @param $groupBy
      * @param bool $qoute
+     *
      * @return $this
      */
     public function setGroupBy($groupBy, $qoute = true)
@@ -326,8 +330,8 @@ abstract class AbstractListing extends AbstractModel
         if ($groupBy) {
             $this->groupBy = $groupBy;
 
-            if ($qoute && strpos($groupBy, "`") !== 0) {
-                $this->groupBy = "`" . $this->groupBy . "`";
+            if ($qoute && strpos($groupBy, '`') !== 0) {
+                $this->groupBy = '`' . $this->groupBy . '`';
             }
         }
 
@@ -336,6 +340,7 @@ abstract class AbstractListing extends AbstractModel
 
     /**
      * @param $validOrders
+     *
      * @return $this
      */
     public function setValidOrders($validOrders)
@@ -346,7 +351,9 @@ abstract class AbstractListing extends AbstractModel
     }
 
     /**
-     * @param  $value
+     * @param $value
+     * @param $type
+     *
      * @return string
      */
     public function quote($value, $type = null)
@@ -358,6 +365,7 @@ abstract class AbstractListing extends AbstractModel
 
     /**
      * @param $conditionVariables
+     *
      * @return $this
      */
     public function setConditionVariables($conditionVariables)

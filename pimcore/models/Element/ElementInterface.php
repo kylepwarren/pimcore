@@ -10,7 +10,8 @@
  *
  * @category   Pimcore
  * @package    Element
- * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
+ *
+ * @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
  * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
@@ -18,9 +19,8 @@ namespace Pimcore\Model\Element;
 
 interface ElementInterface
 {
-
     /**
-     * @return integer $id
+     * @return int $id
      */
     public function getId();
 
@@ -55,58 +55,64 @@ interface ElementInterface
     public function getType();
 
     /**
-     * @return integer
+     * @return int
      */
     public function getCreationDate();
 
     /**
-     * @param integer $creationDate
-     * @return void
+     * @param int $creationDate
+     *
+     * @return $this
      */
     public function setCreationDate($creationDate);
 
     /**
-     * @return integer
+     * @return int
      */
     public function getModificationDate();
 
     /**
-     * @param integer $modificationDate
-     * @return void
+     * @param int $modificationDate
+     *
+     * @return $this
      */
     public function setModificationDate($modificationDate);
 
     /**
-     * @return integer
+     * @return int
      */
     public function getUserOwner();
 
     /**
-     * @param integer $userOwner
-     * @return void
+     * @param int $userOwner
+     *
+     * @return $this
      */
     public function setUserOwner($userOwner);
 
     /**
-     * @return integer
+     * @return int
      */
     public function getUserModification();
 
     /**
-     * @param integer $userModification
-     * @return void
+     * @param int $userModification
+     *
+     * @return $this
      */
     public function setUserModification($userModification);
 
     /**
      *
      * @param $id
+     *
      * @return ElementInterface $resource
      */
     public static function getById($id);
 
     /**
      * get possible types
+     *
      * @return array
      */
     public static function getTypes();
@@ -118,18 +124,20 @@ interface ElementInterface
 
     /**
      * returns true if the element is locked
-     * @return void
+     *
+     * @return $this
      */
     public function isLocked();
 
     /**
      * @param  bool $locked
-     * @return void
+     *
+     * @return $this
      */
     public function setLocked($locked);
 
     /**
-     * @return integer
+     * @return int
      */
     public function getParentId();
 
@@ -140,7 +148,13 @@ interface ElementInterface
 
     /**
      * @param array $tags
+     *
      * @return array
      */
     public function getCacheTags($tags = []);
+
+    /**
+     * @return bool
+     */
+    public function __isBasedOnLatestData();
 }

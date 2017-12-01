@@ -8,7 +8,7 @@
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
+ * @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
  * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
@@ -18,7 +18,6 @@ use Pimcore\Logger;
 
 abstract class Adapter
 {
-
     /**
      * @var int
      */
@@ -66,6 +65,7 @@ abstract class Adapter
 
     /**
      * @param $height
+     *
      * @return $this
      */
     public function setHeight($height)
@@ -85,6 +85,7 @@ abstract class Adapter
 
     /**
      * @param $width
+     *
      * @return $this
      */
     public function setWidth($width)
@@ -102,9 +103,8 @@ abstract class Adapter
         return $this->width;
     }
 
-
     /**
-     * @return void
+     * @todo: duplication found? (pimcore/lib/Pimcore/Document/Adapter.php::removeTmpFiles)
      */
     protected function removeTmpFiles()
     {
@@ -118,9 +118,9 @@ abstract class Adapter
         }
     }
 
-
     /**
      * @param  $colorhex
+     *
      * @return array
      */
     public function colorhex2colorarray($colorhex)
@@ -132,10 +132,10 @@ abstract class Adapter
         return [$r, $g, $b, 'type' => 'RGB'];
     }
 
-
     /**
      * @param  $width
      * @param  $height
+     *
      * @return self
      */
     public function resize($width, $height)
@@ -145,6 +145,8 @@ abstract class Adapter
 
     /**
      * @param  $width
+     * @param  bool $forceResize
+     *
      * @return self
      */
     public function scaleByWidth($width, $forceResize = false)
@@ -159,6 +161,8 @@ abstract class Adapter
 
     /**
      * @param  $height
+     * @param  bool $forceResize
+     *
      * @return self
      */
     public function scaleByHeight($height, $forceResize = false)
@@ -174,18 +178,20 @@ abstract class Adapter
     /**
      * @param  $width
      * @param  $height
+     * @param  bool $forceResize
+     *
      * @return self
      */
-    public function contain($width, $height)
+    public function contain($width, $height, $forceResize = false)
     {
         $x = $this->getWidth() / $width;
         $y = $this->getHeight() / $height;
-        if ($x <= 1 && $y <= 1 && !$this->isVectorGraphic()) {
+        if ((!$forceResize) && $x <= 1 && $y <= 1 && !$this->isVectorGraphic()) {
             return $this;
         } elseif ($x > $y) {
-            $this->scaleByWidth($width);
+            $this->scaleByWidth($width, $forceResize);
         } else {
-            $this->scaleByHeight($height);
+            $this->scaleByHeight($height, $forceResize);
         }
 
         return $this;
@@ -195,46 +201,49 @@ abstract class Adapter
      * @param  $width
      * @param  $height
      * @param string $orientation
+     * @param  bool $forceResize
+     *
      * @return self
      */
-    public function cover($width, $height, $orientation = "center", $doNotScaleUp = true)
+    public function cover($width, $height, $orientation = 'center', $forceResize = false)
     {
-        $scaleUp = $doNotScaleUp ? false : true;
-
+        if (empty($orientation)) {
+            $orientation = 'center'; // if not set (from GUI for instance) - default value in getByLegacyConfig method of Config object too
+        }
         $ratio = $this->getWidth() / $this->getHeight();
 
         if (($width / $height) > $ratio) {
-            $this->scaleByWidth($width, $scaleUp);
+            $this->scaleByWidth($width, $forceResize);
         } else {
-            $this->scaleByHeight($height, $scaleUp);
+            $this->scaleByHeight($height, $forceResize);
         }
 
-        if ($orientation == "center") {
-            $cropX = ($this->getWidth() - $width)/2;
-            $cropY = ($this->getHeight() - $height)/2;
-        } elseif ($orientation == "topleft") {
+        if ($orientation == 'center') {
+            $cropX = ($this->getWidth() - $width) / 2;
+            $cropY = ($this->getHeight() - $height) / 2;
+        } elseif ($orientation == 'topleft') {
             $cropX = 0;
             $cropY = 0;
-        } elseif ($orientation == "topright") {
+        } elseif ($orientation == 'topright') {
             $cropX = $this->getWidth() - $width;
             $cropY = 0;
-        } elseif ($orientation == "bottomleft") {
+        } elseif ($orientation == 'bottomleft') {
             $cropX = 0;
             $cropY = $this->getHeight() - $height;
-        } elseif ($orientation == "bottomright") {
+        } elseif ($orientation == 'bottomright') {
             $cropX = $this->getWidth() - $width;
             $cropY = $this->getHeight() - $height;
-        } elseif ($orientation == "centerleft") {
+        } elseif ($orientation == 'centerleft') {
             $cropX = 0;
-            $cropY = ($this->getHeight() - $height)/2;
-        } elseif ($orientation == "centerright") {
+            $cropY = ($this->getHeight() - $height) / 2;
+        } elseif ($orientation == 'centerright') {
             $cropX = $this->getWidth() - $width;
-            $cropY = ($this->getHeight() - $height)/2;
-        } elseif ($orientation == "topcenter") {
-            $cropX = ($this->getWidth() - $width)/2;
+            $cropY = ($this->getHeight() - $height) / 2;
+        } elseif ($orientation == 'topcenter') {
+            $cropX = ($this->getWidth() - $width) / 2;
             $cropY = 0;
-        } elseif ($orientation == "bottomcenter") {
-            $cropX = ($this->getWidth() - $width)/2;
+        } elseif ($orientation == 'bottomcenter') {
+            $cropX = ($this->getWidth() - $width) / 2;
             $cropY = $this->getHeight() - $height;
         } else {
             $cropX = null;
@@ -244,7 +253,7 @@ abstract class Adapter
         if ($cropX !== null && $cropY !== null) {
             $this->crop($cropX, $cropY, $width, $height);
         } else {
-            Logger::error("Cropping not processed, because X or Y is not defined or null, proceeding with next step");
+            Logger::error('Cropping not processed, because X or Y is not defined or null, proceeding with next step');
         }
 
         return $this;
@@ -253,15 +262,18 @@ abstract class Adapter
     /**
      * @param $width
      * @param $height
+     * @param  bool $forceResize
+     *
      * @return $this
      */
-    public function frame($width, $height)
+    public function frame($width, $height, $forceResize = false)
     {
         return $this;
     }
 
     /**
      * @param  int $tolerance
+     *
      * @return self
      */
     public function trim($tolerance)
@@ -271,6 +283,7 @@ abstract class Adapter
 
     /**
      * @param $angle
+     *
      * @return $this
      */
     public function rotate($angle)
@@ -283,6 +296,7 @@ abstract class Adapter
      * @param  $y
      * @param  $width
      * @param  $height
+     *
      * @return self
      */
     public function crop($x, $y, $width, $height)
@@ -290,9 +304,9 @@ abstract class Adapter
         return $this;
     }
 
-
     /**
      * @param  $color
+     *
      * @return self
      */
     public function setBackgroundColor($color)
@@ -302,6 +316,7 @@ abstract class Adapter
 
     /**
      * @param  $image
+     *
      * @return self
      */
     public function setBackgroundImage($image)
@@ -309,10 +324,10 @@ abstract class Adapter
         return $this;
     }
 
-
     /**
      * @param $width
      * @param $height
+     *
      * @return $this
      */
     public function roundCorners($width, $height)
@@ -325,10 +340,12 @@ abstract class Adapter
      * @param int $x
      * @param int $y
      * @param int $alpha
+     * @param string $composite
      * @param string $origin Origin of the X and Y coordinates (top-left, top-right, bottom-left, bottom-right or center)
+     *
      * @return self
      */
-    public function addOverlay($image, $x = 0, $y = 0, $alpha = 100, $composite = "COMPOSITE_DEFAULT", $origin = 'top-left')
+    public function addOverlay($image, $x = 0, $y = 0, $alpha = 100, $composite = 'COMPOSITE_DEFAULT', $origin = 'top-left')
     {
         return $this;
     }
@@ -336,15 +353,17 @@ abstract class Adapter
     /**
      * @param $image
      * @param string $composite
+     *
      * @return $this
      */
-    public function addOverlayFit($image, $composite = "COMPOSITE_DEFAULT")
+    public function addOverlayFit($image, $composite = 'COMPOSITE_DEFAULT')
     {
         return $this;
     }
 
     /**
      * @param  $image
+     *
      * @return self
      */
     public function applyMask($image)
@@ -357,6 +376,7 @@ abstract class Adapter
      * @param $height
      * @param $x
      * @param $y
+     *
      * @return self
      */
     public function cropPercent($width, $height, $x, $y)
@@ -364,7 +384,7 @@ abstract class Adapter
         if ($this->isVectorGraphic()) {
             // rasterize before cropping
             $dimensions = $this->getVectorRasterDimensions();
-            $this->resize($dimensions["width"], $dimensions["height"]);
+            $this->resize($dimensions['width'], $dimensions['height']);
         }
 
         $originalWidth = $this->getWidth();
@@ -403,6 +423,8 @@ abstract class Adapter
     }
 
     /**
+     * @param $mode
+     *
      * @return self
      */
     public function mirror($mode)
@@ -413,6 +435,7 @@ abstract class Adapter
     /**
      * @param int $radius
      * @param float $sigma
+     *
      * @return $this|Adapter
      */
     public function gaussianBlur($radius = 0, $sigma = 1.0)
@@ -424,6 +447,7 @@ abstract class Adapter
      * @param int $brightness
      * @param int $saturation
      * @param int $hue
+     *
      * @return $this
      */
     public function brightnessSaturation($brightness = 100, $saturation = 100, $hue = 100)
@@ -433,30 +457,28 @@ abstract class Adapter
 
     /**
      * @abstract
-     * @param  $imagePath
+     *
+     * @param $imagePath
+     * @param array $options
+     *
      * @return self
      */
     abstract public function load($imagePath, $options = []);
-
 
     /**
      * @param $path
      * @param null $format
      * @param null $quality
+     *
      * @return mixed
      */
     abstract public function save($path, $format = null, $quality = null);
 
-
     /**
      * @abstract
-     * @return void
      */
     abstract protected function destroy();
 
-    /**
-     *
-     */
     public function preModify()
     {
         if ($this->getModified()) {
@@ -464,25 +486,19 @@ abstract class Adapter
         }
     }
 
-    /**
-     *
-     */
     public function postModify()
     {
         $this->setModified(true);
     }
 
-    /**
-     * @return void
-     */
     protected function reinitializeImage()
     {
-        $tmpFile = PIMCORE_SYSTEM_TEMP_DIRECTORY . "/" . uniqid() . "_pimcore_image_tmp_file.png";
+        $tmpFile = PIMCORE_SYSTEM_TEMP_DIRECTORY . '/' . uniqid() . '_pimcore_image_tmp_file.png';
         $this->tmpFiles[] = $tmpFile;
 
-        $format = "png32";
+        $format = 'png32';
         if ($this->isPreserveColor() || $this->isPreserveMetaData()) {
-            $format = "original";
+            $format = 'original';
         }
 
         $this->reinitializing = true;
@@ -494,15 +510,11 @@ abstract class Adapter
         $this->modified = false;
     }
 
-    /**
-     *
-     */
     public function __destruct()
     {
         $this->destroy();
         $this->removeTmpFiles();
     }
-
 
     /**
      * @return bool
@@ -521,22 +533,23 @@ abstract class Adapter
         $factor = $targetWidth / $this->getWidth();
 
         return [
-            "width" => $this->getWidth() * $factor,
-            "height" => $this->getHeight() * $factor
+            'width' => $this->getWidth() * $factor,
+            'height' => $this->getHeight() * $factor
         ];
     }
 
     /**
      * @param string $type
+     *
      * @return $this
      */
-    public function setColorspace($type = "RGB")
+    public function setColorspace($type = 'RGB')
     {
         return $this;
     }
 
     /**
-     * @param boolean $useContentOptimizedFormat
+     * @param bool $useContentOptimizedFormat
      */
     public function setUseContentOptimizedFormat($useContentOptimizedFormat)
     {
@@ -544,7 +557,7 @@ abstract class Adapter
     }
 
     /**
-     * @return boolean
+     * @return bool
      */
     public function getUseContentOptimizedFormat()
     {
@@ -552,7 +565,7 @@ abstract class Adapter
     }
 
     /**
-     * @param boolean $modified
+     * @param bool $modified
      */
     public function setModified($modified)
     {
@@ -560,7 +573,7 @@ abstract class Adapter
     }
 
     /**
-     * @return boolean
+     * @return bool
      */
     public function getModified()
     {
@@ -576,7 +589,7 @@ abstract class Adapter
     }
 
     /**
-     * @return boolean
+     * @return bool
      */
     public function isPreserveColor()
     {
@@ -584,7 +597,7 @@ abstract class Adapter
     }
 
     /**
-     * @param boolean $preserveColor
+     * @param bool $preserveColor
      */
     public function setPreserveColor($preserveColor)
     {
@@ -592,7 +605,7 @@ abstract class Adapter
     }
 
     /**
-     * @return boolean
+     * @return bool
      */
     public function isPreserveMetaData()
     {
@@ -600,7 +613,7 @@ abstract class Adapter
     }
 
     /**
-     * @param boolean $preserveMetaData
+     * @param bool $preserveMetaData
      */
     public function setPreserveMetaData($preserveMetaData)
     {

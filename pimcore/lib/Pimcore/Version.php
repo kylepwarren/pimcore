@@ -8,7 +8,7 @@
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
+ * @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
  * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
@@ -16,17 +16,20 @@ namespace Pimcore;
 
 class Version
 {
-
     /**
      * @var string
      */
-    public static $version = "4.4.1";
+    public static $version = '5.0.2';
 
     /**
      * @var int
      */
-    public static $revision = 4015;
+    public static $revision = 152;
 
+    /**
+     * @var string
+     */
+    public static $buildDate = '2017-11-29T13:18:32+00:00';
 
     /**
      * @return string
@@ -42,5 +45,13 @@ class Version
     public static function getRevision()
     {
         return self::$revision;
+    }
+
+    /**
+     * @return string
+     */
+    public static function getBuildDate(): string
+    {
+        return self::$buildDate;
     }
 }

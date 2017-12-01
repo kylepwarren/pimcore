@@ -8,21 +8,22 @@
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
+ * @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
  * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\WorkflowManagement\Workflow;
 
-use Pimcore\WorkflowManagement\Workflow;
+use Pimcore\Model\Workflow;
 
 class Factory
 {
-
     /**
      *
      * @param $config
-     * @return \Pimcore\WorkflowManagement\Workflow
+     *
+     * @return Workflow
+     *
      * @throws \Exception
      */
     public static function getWorkflowFromConfig($config)
@@ -31,6 +32,6 @@ class Factory
             throw new \Exception('Workflow json configuration could not be created, invalid configuration array given');
         }
 
-        return new Workflow($config);
+        return Workflow::getById($config['id']);
     }
 }

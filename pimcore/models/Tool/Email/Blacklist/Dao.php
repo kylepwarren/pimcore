@@ -10,7 +10,8 @@
  *
  * @category   Pimcore
  * @package    Element
- * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
+ *
+ * @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
  * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
@@ -23,17 +24,17 @@ use Pimcore\Model;
  */
 class Dao extends Model\Dao\AbstractDao
 {
-
     /**
      * @param $address
+     *
      * @throws \Exception
      */
     public function getByAddress($address)
     {
-        $data = $this->db->fetchRow("SELECT * FROM email_blacklist WHERE address = ?", $address);
+        $data = $this->db->fetchRow('SELECT * FROM email_blacklist WHERE address = ?', $address);
 
-        if (!$data["address"]) {
-            throw new \Exception("blacklist item with address " . $address . " not found");
+        if (!$data['address']) {
+            throw new \Exception('blacklist item with address ' . $address . ' not found');
         }
         $this->assignVariablesToModel($data);
     }
@@ -41,7 +42,9 @@ class Dao extends Model\Dao\AbstractDao
     /**
      * Save object to database
      *
-     * @return void
+     * @return bool
+     *
+     * @todo: $data could be undefined
      */
     public function save()
     {
@@ -54,7 +57,7 @@ class Dao extends Model\Dao\AbstractDao
 
         // save main table
         foreach ($version as $key => $value) {
-            if (in_array($key, $this->getValidTableColumns("email_blacklist"))) {
+            if (in_array($key, $this->getValidTableColumns('email_blacklist'))) {
                 if (is_bool($value)) {
                     $value = (int) $value;
                 }
@@ -63,18 +66,16 @@ class Dao extends Model\Dao\AbstractDao
             }
         }
 
-        $this->db->insertOrUpdate("email_blacklist", $data);
+        $this->db->insertOrUpdate('email_blacklist', $data);
 
         return true;
     }
 
     /**
      * Deletes object from database
-     *
-     * @return void
      */
     public function delete()
     {
-        $this->db->delete("email_blacklist", $this->db->quoteInto("address = ?", $this->model->getAddress()));
+        $this->db->delete('email_blacklist', ['address' => $this->model->getAddress()]);
     }
 }

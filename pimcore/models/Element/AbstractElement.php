@@ -10,7 +10,8 @@
  *
  * @category   Pimcore
  * @package    Element
- * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
+ *
+ * @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
  * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
@@ -23,13 +24,18 @@ use Pimcore\Model;
  */
 abstract class AbstractElement extends Model\AbstractModel implements ElementInterface
 {
-
+    /**
+     * @var int
+     */
+    protected $__dataVersionTimestamp = null;
 
     /**
      * Get specific property data or the property object itself ($asContainer=true) by its name, if the
      * property doesn't exists return null
+     *
      * @param string $name
      * @param bool $asContainer
+     *
      * @return mixed
      */
     public function getProperty($name, $asContainer = false)
@@ -48,6 +54,7 @@ abstract class AbstractElement extends Model\AbstractModel implements ElementInt
 
     /**
      * @param  $name
+     *
      * @return bool
      */
     public function hasProperty($name)
@@ -76,7 +83,7 @@ abstract class AbstractElement extends Model\AbstractModel implements ElementInt
     {
         $elementType = Service::getElementType($this);
 
-        return $elementType . "_" . $this->getId();
+        return $elementType . '_' . $this->getId();
     }
 
     /**
@@ -84,6 +91,7 @@ abstract class AbstractElement extends Model\AbstractModel implements ElementInt
      * This is necessary to update the cache if there is a change in an depended object
      *
      * @param array $tags
+     *
      * @return array
      */
     public function getCacheTags($tags = [])
@@ -105,7 +113,7 @@ abstract class AbstractElement extends Model\AbstractModel implements ElementInt
         $dependencies = [];
 
         // check for properties
-        if (method_exists($this, "getProperties")) {
+        if (method_exists($this, 'getProperties')) {
             $properties = $this->getProperties();
             foreach ($properties as $property) {
                 $dependencies = array_merge($dependencies, $property->resolveDependencies());
@@ -117,6 +125,7 @@ abstract class AbstractElement extends Model\AbstractModel implements ElementInt
 
     /**
      * Returns true if the element is locked
+     *
      * @return bool
      */
     public function isLocked()
@@ -134,9 +143,9 @@ abstract class AbstractElement extends Model\AbstractModel implements ElementInt
      */
     public function getUserPermissions()
     {
-        $elementType = Service::getElementType($this);
-        $vars = get_class_vars("\\Pimcore\\Model\\User\\Workspace\\" . ucfirst($elementType));
-        $ignored = ["userId", "cid", "cpath", "dao"];
+        $workspaceClass = Service::getBaseClassNameForElement($this);
+        $vars = get_class_vars('\\Pimcore\\Model\\User\\Workspace\\' . $workspaceClass);
+        $ignored = ['userId', 'cid', 'cpath', 'dao'];
         $permissions = [];
 
         foreach ($vars as $name => $defaultValue) {
@@ -152,7 +161,8 @@ abstract class AbstractElement extends Model\AbstractModel implements ElementInt
      * This is used for user-permissions, pass a permission type (eg. list, view, save) an you know if the current user is allowed to perform the requested action
      *
      * @param string $type
-     * @return boolean
+     *
+     * @return bool
      */
     public function isAllowed($type)
     {
@@ -165,9 +175,6 @@ abstract class AbstractElement extends Model\AbstractModel implements ElementInt
         return $this->getDao()->isAllowed($type, $currentUser);
     }
 
-    /**
-     *
-     */
     public function unlockPropagate()
     {
         $type = Service::getType($this);
@@ -185,7 +192,7 @@ abstract class AbstractElement extends Model\AbstractModel implements ElementInt
     /**
      * Inverted hasChilds()
      *
-     * @return boolean
+     * @return bool
      */
     public function hasNoChilds()
     {
@@ -198,5 +205,29 @@ abstract class AbstractElement extends Model\AbstractModel implements ElementInt
     public function __toString()
     {
         return $this->getFullPath();
+    }
+
+    /**
+     * @return int
+     */
+    public function __getDataVersionTimestamp()
+    {
+        return $this->__dataVersionTimestamp;
+    }
+
+    /**
+     * @param int $_dataVersionTimestamp
+     */
+    public function __setDataVersionTimestamp($_dataVersionTimestamp)
+    {
+        $this->__dataVersionTimestamp = $_dataVersionTimestamp;
+    }
+
+    /**
+     * @return bool
+     */
+    public function __isBasedOnLatestData()
+    {
+        return $this->getDao()->__isBasedOnLatestData();
     }
 }

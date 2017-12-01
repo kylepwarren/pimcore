@@ -10,21 +10,34 @@
  *
  * @category   Pimcore
  * @package    Webservice
- * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
+ *
+ * @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
  * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Webservice\Data\Document;
 
-use \Pimcore\Model\Webservice\Data\Document;
+use Pimcore\Model\Webservice\Data\Document;
 
 class Printcontainer extends Document\PageSnippet
 {
+    /**
+     * @var int
+     */
     public $lastGenerated;
 
+    /**
+     * @var bool
+     */
     public $inProgress;
 
+    /**
+     * @var string
+     */
     public $css;
 
+    /**
+     * @var string
+     */
     public $lastGenerateMessage;
 }

@@ -10,7 +10,8 @@
  *
  * @category   Pimcore
  * @package    Element
- * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
+ *
+ * @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
  * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
@@ -23,24 +24,25 @@ use Pimcore\Model;
  */
 class Dao extends Model\Dao\AbstractDao
 {
-
     /**
      * Save to database
      *
-     * @return void
+     * @return bool
+     *
+     * @todo: not all save methods return a boolean, why this one?
      */
     public function save()
     {
         $sanityCheck = get_object_vars($this->model);
 
         foreach ($sanityCheck as $key => $value) {
-            if (in_array($key, $this->getValidTableColumns("sanitycheck"))) {
+            if (in_array($key, $this->getValidTableColumns('sanitycheck'))) {
                 $data[$key] = $value;
             }
         }
 
         try {
-            $this->db->insertOrUpdate("sanitycheck", $data);
+            $this->db->insertOrUpdate('sanitycheck', $data);
         } catch (\Exception $e) {
             //probably duplicate
         }
@@ -50,17 +52,15 @@ class Dao extends Model\Dao\AbstractDao
 
     /**
      * Deletes object from database
-     *
-     * @return void
      */
     public function delete()
     {
-        $this->db->delete("sanitycheck", $this->db->quoteInto("id = ?", $this->model->getId()) . " AND " . $this->db->quoteInto("type = ?", $this->model->getType()));
+        $this->db->delete('sanitycheck', ['id' => $this->model->getId(), 'type' => $this->model->getType()]);
     }
 
     public function getNext()
     {
-        $data = $this->db->fetchRow("SELECT * FROM sanitycheck LIMIT 1");
+        $data = $this->db->fetchRow('SELECT * FROM sanitycheck LIMIT 1');
         if (is_array($data)) {
             $this->assignVariablesToModel($data);
         }

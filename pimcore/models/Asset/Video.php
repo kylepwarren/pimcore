@@ -10,39 +10,37 @@
  *
  * @category   Pimcore
  * @package    Asset
- * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
+ *
+ * @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
  * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Asset;
 
-use Pimcore\File;
-use Pimcore\Model;
+use Pimcore\Event\FrontendEvents;
 use Pimcore\Logger;
+use Pimcore\Model;
+use Symfony\Component\EventDispatcher\GenericEvent;
 
 /**
  * @method \Pimcore\Model\Asset\Dao getDao()
  */
 class Video extends Model\Asset
 {
-
     /**
      * @var string
      */
-    public $type = "video";
+    public $type = 'video';
 
-    /**
-     * @return void
-     */
     protected function update()
     {
 
         // only do this if the file exists and contains data
-        if ($this->getDataChanged() || !$this->getCustomSetting("duration")) {
+        if ($this->getDataChanged() || !$this->getCustomSetting('duration')) {
             try {
-                $this->setCustomSetting("duration", $this->getDurationFromBackend());
+                $this->setCustomSetting('duration', $this->getDurationFromBackend());
             } catch (\Exception $e) {
-                Logger::err("Unable to get duration of video: " . $this->getId());
+                Logger::err('Unable to get duration of video: ' . $this->getId());
             }
         }
 
@@ -50,39 +48,42 @@ class Video extends Model\Asset
         parent::update();
     }
 
-    /**
-     *
-     */
     public function delete()
     {
         parent::delete();
-        $this->clearThumbnails();
+        $this->clearThumbnails(true);
     }
 
     /**
-     * @return void
+     * @param bool $force
      */
     public function clearThumbnails($force = false)
     {
         if ($this->_dataChanged || $force) {
             // clear the thumbnail custom settings
-            $this->setCustomSetting("thumbnails", null);
+            $this->setCustomSetting('thumbnails', null);
 
             // video thumbnails and image previews
-            $files = glob(PIMCORE_TEMPORARY_DIRECTORY . "/video-image-cache/video_" . $this->getId() . "__*");
+            $files = glob(PIMCORE_TEMPORARY_DIRECTORY . '/video-image-cache/video_' . $this->getId() . '__*');
             if (is_array($files)) {
                 foreach ($files as $file) {
                     unlink($file);
                 }
             }
 
-            recursiveDelete($this->getImageThumbnailSavePath());
-            recursiveDelete($this->getVideoThumbnailSavePath());
+            $imageFiles = glob($this->getImageThumbnailSavePath() . '/image-thumb__' . $this->getId() . '__*');
+            $videoFiles = glob($this->getVideoThumbnailSavePath() . '/video-thumb__' . $this->getId() . '__*');
+
+            $files = array_merge($imageFiles, $videoFiles);
+            foreach ($files as $file) {
+                recursiveDelete($file);
+            }
         }
     }
 
     /**
      * @param string $config
+     *
      * @return Video\Thumbnail\Config|null
      */
     public function getThumbnailConfig($config)
@@ -101,7 +102,9 @@ class Video extends Model\Asset
     /**
      * Returns a path to a given thumbnail or an thumbnail configuration
      *
-     * @param mixed
+     * @param $thumbnailName
+     * @param array $onlyFormats
+     *
      * @return string
      */
     public function getThumbnail($thumbnailName, $onlyFormats = [])
@@ -113,21 +116,19 @@ class Video extends Model\Asset
                 Video\Thumbnail\Processor::process($this, $thumbnail, $onlyFormats);
 
                 // check for existing videos
-                $customSetting = $this->getCustomSetting("thumbnails");
+                $customSetting = $this->getCustomSetting('thumbnails');
                 if (is_array($customSetting) && array_key_exists($thumbnail->getName(), $customSetting)) {
-                    foreach ($customSetting[$thumbnail->getName()]["formats"] as &$path) {
+                    foreach ($customSetting[$thumbnail->getName()]['formats'] as &$path) {
                         $fullPath = $this->getVideoThumbnailSavePath() . $path;
-                        $path = str_replace(PIMCORE_DOCUMENT_ROOT, "", $fullPath);
+                        $path = str_replace(PIMCORE_TEMPORARY_DIRECTORY . '/video-thumbnails', '', $fullPath);
                         $path = urlencode_ignore_slash($path);
 
-                        $results = \Pimcore::getEventManager()->trigger("frontend.path.asset.video.thumbnail", $this, [
-                            "filesystemPath" => $fullPath,
-                            "frontendPath" => $path
+                        $event = new GenericEvent($this, [
+                            'filesystemPath' => $fullPath,
+                            'frontendPath' => $path
                         ]);
-
-                        if ($results->count()) {
-                            $path = $results->last();
-                        }
+                        \Pimcore::getEventDispatcher()->dispatch(FrontendEvents::ASSET_VIDEO_THUMBNAIL, $event);
+                        $path = $event->getArgument('frontendPath');
                     }
 
                     return $customSetting[$thumbnail->getName()];
@@ -145,13 +146,15 @@ class Video extends Model\Asset
      * @param $thumbnailName
      * @param null $timeOffset
      * @param null $imageAsset
+     *
      * @return mixed|string
+     *
      * @throws \Exception
      */
     public function getImageThumbnail($thumbnailName, $timeOffset = null, $imageAsset = null)
     {
         if (!\Pimcore\Video::isAvailable()) {
-            Logger::error("Couldn't create image-thumbnail of video " . $this->getRealFullPath() . " no video adapter is available");
+            Logger::error("Couldn't create image-thumbnail of video " . $this->getRealFullPath() . ' no video adapter is available');
 
             return new Video\ImageThumbnail(null); // returns error image
         }
@@ -161,6 +164,7 @@ class Video extends Model\Asset
 
     /**
      * @return null
+     *
      * @throws \Exception
      */
     protected function getDurationFromBackend()
@@ -180,11 +184,11 @@ class Video extends Model\Asset
      */
     public function getDuration()
     {
-        $duration = $this->getCustomSetting("duration");
+        $duration = $this->getCustomSetting('duration');
         if (!$duration) {
             $duration = $this->getDurationFromBackend();
             if ($duration) {
-                $this->setCustomSetting("duration", $duration);
+                $this->setCustomSetting('duration', $duration);
 
                 Model\Version::disable();
                 $this->save(); // auto save

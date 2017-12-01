@@ -8,7 +8,7 @@
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
+ * @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
  * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
@@ -18,13 +18,29 @@ use Pimcore\File;
 
 class PhpArrayFileTable
 {
+    /**
+     * @var array
+     */
     protected static $tables = [];
+
+    /**
+     * @var string
+     */
     protected $filePath;
+
+    /**
+     * @var array
+     */
     protected $data = [];
+
+    /**
+     * @var int
+     */
     protected $lastInsertId;
 
     /**
      * @param $filePath
+     *
      * @return self
      */
     public static function get($filePath)
@@ -38,6 +54,7 @@ class PhpArrayFileTable
 
     /**
      * PhpArrayFileTable constructor.
+     *
      * @param string $filePath
      */
     public function __construct($filePath = null)
@@ -49,6 +66,7 @@ class PhpArrayFileTable
 
     /**
      * @param $filePath
+     *
      * @throws \Exception
      */
     public function setFilePath($filePath)
@@ -68,13 +86,14 @@ class PhpArrayFileTable
 
             $this->load();
         } else {
-            throw new \Exception($filePath . " is not writeable");
+            throw new \Exception($filePath . ' is not writeable');
         }
     }
 
     /**
      * @param $data
      * @param string|int $id
+     *
      * @throws \Exception
      */
     public function insertOrUpdate($data, $id = null)
@@ -83,7 +102,7 @@ class PhpArrayFileTable
             $id = $this->getNextId();
         }
 
-        $data["id"] = $id;
+        $data['id'] = $id;
         $this->data[$id] = $data;
 
         $this->save();
@@ -103,6 +122,7 @@ class PhpArrayFileTable
 
     /**
      * @param string|int $id
+     *
      * @return array|null
      */
     public function getById($id)
@@ -117,6 +137,7 @@ class PhpArrayFileTable
     /**
      * @param null $filter
      * @param null $order
+     *
      * @return array
      */
     public function fetchAll($filter = null, $order = null)
@@ -164,18 +185,12 @@ class PhpArrayFileTable
         return $this->lastInsertId;
     }
 
-    /**
-     *
-     */
     public function truncate()
     {
         $this->data = [];
         $this->save();
     }
 
-    /**
-     *
-     */
     protected function load()
     {
         if (file_exists($this->filePath)) {
@@ -186,9 +201,6 @@ class PhpArrayFileTable
         }
     }
 
-    /**
-     *
-     */
     protected function save()
     {
         $contents = to_php_data_file_format($this->data);

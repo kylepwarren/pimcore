@@ -10,13 +10,14 @@
  *
  * @category   Pimcore
  * @package    Document
- * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
+ *
+ * @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
  * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\Document;
 
-use \Pimcore\Model\Document;
+use Pimcore\Model\Document;
 
 /**
  * @method \Pimcore\Model\Document\Printcontainer\Dao getDao()
@@ -28,34 +29,42 @@ class Printcontainer extends Document\PrintAbstract
      *
      * @var string
      */
-    public $type = "printcontainer";
+    public $type = 'printcontainer';
 
     /**
      * @var string
      */
-    public $action = "container";
+    public $action = 'container';
 
+    /**
+     * @var
+     */
+    private $allChildren = [];
 
+    /**
+     * @return array
+     */
     public function getTreeNodeConfig()
     {
         $tmpDocument = [];
-        $tmpDocument["leaf"] = false;
-        $tmpDocument["expanded"] = $this->hasNoChilds();
-        $tmpDocument["iconCls"] = "pimcore_icon_printcontainer";
-        $tmpDocument["permissions"] = [
-            "view" => $this->isAllowed("view"),
-            "remove" => $this->isAllowed("delete"),
-            "settings" => $this->isAllowed("settings"),
-            "rename" => $this->isAllowed("rename"),
-            "publish" => $this->isAllowed("publish"),
-            "create" => $this->isAllowed("create")
+        $tmpDocument['leaf'] = false;
+        $tmpDocument['expanded'] = $this->hasNoChilds();
+        $tmpDocument['iconCls'] = 'pimcore_icon_printcontainer';
+        $tmpDocument['permissions'] = [
+            'view' => $this->isAllowed('view'),
+            'remove' => $this->isAllowed('delete'),
+            'settings' => $this->isAllowed('settings'),
+            'rename' => $this->isAllowed('rename'),
+            'publish' => $this->isAllowed('publish'),
+            'create' => $this->isAllowed('create')
         ];
 
         return $tmpDocument;
     }
 
-
-    private $allChildren;
+    /**
+     * @return array
+     */
     public function getAllChildren()
     {
         $this->allChildren = [];
@@ -64,9 +73,12 @@ class Printcontainer extends Document\PrintAbstract
         return $this->allChildren;
     }
 
+    /**
+     * @param Document $document
+     */
     private function doGetChildren(Document $document)
     {
-        $children = $document->getChilds();
+        $children = $document->getChildren();
         foreach ($children as $child) {
             if ($child instanceof Document\Printpage) {
                 $this->allChildren[] = $child;
@@ -86,7 +98,9 @@ class Printcontainer extends Document\PrintAbstract
         }
     }
 
-
+    /**
+     * @return bool
+     */
     public function pdfIsDirty()
     {
         $dirty = parent::pdfIsDirty();

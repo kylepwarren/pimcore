@@ -10,7 +10,8 @@
  *
  * @category   Pimcore
  * @package    Document
- * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
+ *
+ * @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
  * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
@@ -18,8 +19,8 @@ namespace Pimcore\Model\Document;
 
 use Pimcore\Model;
 use Pimcore\Model\Document;
-use Pimcore\Model\Redirect;
 use Pimcore\Model\Element;
+use Pimcore\Model\Redirect;
 
 /**
  * @method \Pimcore\Model\Document\Hardlink\Dao getDao()
@@ -33,7 +34,7 @@ class Hardlink extends Document
      *
      * @var string
      */
-    public $type = "hardlink";
+    public $type = 'hardlink';
 
     /**
      * @var int
@@ -50,7 +51,6 @@ class Hardlink extends Document
      */
     public $childsFromSource;
 
-
     /**
      * @return Document\PageSnippet
      */
@@ -65,6 +65,7 @@ class Hardlink extends Document
 
     /**
      * @see Document::resolveDependencies
+     *
      * @return array
      */
     public function resolveDependencies()
@@ -72,11 +73,11 @@ class Hardlink extends Document
         $dependencies = parent::resolveDependencies();
 
         if ($this->getSourceDocument() instanceof Document) {
-            $key = "document_" . $this->getSourceDocument()->getId();
+            $key = 'document_' . $this->getSourceDocument()->getId();
 
             $dependencies[$key] = [
-                "id" => $this->getSourceDocument()->getId(),
-                "type" => "document"
+                'id' => $this->getSourceDocument()->getId(),
+                'type' => 'document'
             ];
         }
 
@@ -85,6 +86,8 @@ class Hardlink extends Document
 
     /**
      * Resolves dependencies and create tags for caching out of them
+     *
+     * @param array $tags
      *
      * @return array
      */
@@ -105,6 +108,7 @@ class Hardlink extends Document
 
     /**
      * @param $childsFromSource
+     *
      * @return Hardlink
      */
     public function setChildrenFromSource($childsFromSource)
@@ -116,7 +120,9 @@ class Hardlink extends Document
 
     /**
      * @deprecated
+     *
      * @param $childsFromSource
+     *
      * @return Hardlink
      */
     public function setChildsFromSource($childsFromSource)
@@ -125,7 +131,7 @@ class Hardlink extends Document
     }
 
     /**
-     * @return boolean
+     * @return bool
      */
     public function getChildrenFromSource()
     {
@@ -134,6 +140,7 @@ class Hardlink extends Document
 
     /**
      * @deprecated
+     *
      * @return bool
      */
     public function getChildsFromSource()
@@ -143,6 +150,7 @@ class Hardlink extends Document
 
     /**
      * @param $sourceId
+     *
      * @return $this
      */
     public function setSourceId($sourceId)
@@ -162,6 +170,7 @@ class Hardlink extends Document
 
     /**
      * @param $propertiesFromSource
+     *
      * @return $this
      */
     public function setPropertiesFromSource($propertiesFromSource)
@@ -172,7 +181,7 @@ class Hardlink extends Document
     }
 
     /**
-     * @return boolean
+     * @return bool
      */
     public function getPropertiesFromSource()
     {
@@ -211,6 +220,7 @@ class Hardlink extends Document
 
     /**
      * @param bool $unpublished
+     *
      * @return array|null
      */
     public function getChildren($unpublished = false)
@@ -219,12 +229,12 @@ class Hardlink extends Document
             $childs = parent::getChildren();
 
             $sourceChildren = [];
-            if ($this->getChildsFromSource() && $this->getSourceDocument() && !\Pimcore::inAdmin()) {
+            if ($this->getChildrenFromSource() && $this->getSourceDocument() && !\Pimcore::inAdmin()) {
                 $sourceChildren = $this->getSourceDocument()->getChildren();
                 foreach ($sourceChildren as &$c) {
                     $c = Document\Hardlink\Service::wrap($c);
                     $c->setHardLinkSource($this);
-                    $c->setPath(preg_replace("@^" . preg_quote($this->getSourceDocument()->getRealFullPath()) . "@", $this->getRealFullPath(), $c->getRealPath()));
+                    $c->setPath(preg_replace('@^' . preg_quote($this->getSourceDocument()->getRealFullPath()) . '@', $this->getRealFullPath(), $c->getRealPath()));
                 }
             }
 
@@ -237,6 +247,7 @@ class Hardlink extends Document
 
     /**
      * hast to overwrite the resource implementation because there can be inherited childs
+     *
      * @return bool
      */
     public function hasChildren()
@@ -244,10 +255,8 @@ class Hardlink extends Document
         return count($this->getChildren()) > 0;
     }
 
-
     /**
      * @see Document::delete
-     * @return void
      */
     public function delete()
     {
@@ -257,7 +266,7 @@ class Hardlink extends Document
 
         // check for redirects pointing to this document, and delete them too
         $redirects = new Redirect\Listing();
-        $redirects->setCondition("target = ?", $this->getId());
+        $redirects->setCondition('target = ?', $this->getId());
         $redirects->load();
 
         foreach ($redirects->getRedirects() as $redirect) {
@@ -271,9 +280,6 @@ class Hardlink extends Document
         $this->childs = null;
     }
 
-    /**
-     *
-     */
     protected function update()
     {
         $oldPath = $this->getDao()->getCurrentFullPath();
@@ -285,7 +291,7 @@ class Hardlink extends Document
             // create redirect for old path
             $redirect = new Redirect();
             $redirect->setTarget($this->getId());
-            $redirect->setSource("@" . $oldPath . "/?@");
+            $redirect->setSource('@' . $oldPath . '/?@');
             $redirect->setStatusCode(301);
             $redirect->setExpiry(time() + 86400 * 60); // this entry is removed automatically after 60 days
             $redirect->save();

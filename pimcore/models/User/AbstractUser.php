@@ -10,12 +10,15 @@
  *
  * @category   Pimcore
  * @package    User
- * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
+ *
+ * @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
  * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\User;
 
+use Pimcore\Event\Model\UserRoleEvent;
+use Pimcore\Event\UserRoleEvents;
 use Pimcore\Model;
 
 /**
@@ -23,14 +26,13 @@ use Pimcore\Model;
  */
 class AbstractUser extends Model\AbstractModel
 {
-
     /**
-     * @var integer
+     * @var int
      */
     public $id;
 
     /**
-     * @var integer
+     * @var int
      */
     public $parentId;
 
@@ -45,25 +47,26 @@ class AbstractUser extends Model\AbstractModel
     public $type;
 
     /**
-     * @param integer $id
+     * @param int $id
+     *
      * @return AbstractUser
      */
     public static function getById($id)
     {
-        $cacheKey = "user_" . $id;
+        $cacheKey = 'user_' . $id;
         try {
-            if (\Zend_Registry::isRegistered($cacheKey)) {
-                $user =  \Zend_Registry::get($cacheKey);
+            if (\Pimcore\Cache\Runtime::isRegistered($cacheKey)) {
+                $user =  \Pimcore\Cache\Runtime::get($cacheKey);
             } else {
                 $user = new static();
                 $user->getDao()->getById($id);
 
-                if (get_class($user) == "Pimcore\\Model\\User\\AbstractUser") {
+                if (get_class($user) == 'Pimcore\\Model\\User\\AbstractUser') {
                     $className = Service::getClassNameForType($user->getType());
                     $user = $className::getById($user->getId());
                 }
 
-                \Zend_Registry::set($cacheKey, $user);
+                \Pimcore\Cache\Runtime::set($cacheKey, $user);
             }
 
             return $user;
@@ -74,6 +77,7 @@ class AbstractUser extends Model\AbstractModel
 
     /**
      * @param array $values
+     *
      * @return self
      */
     public static function create($values = [])
@@ -87,6 +91,7 @@ class AbstractUser extends Model\AbstractModel
 
     /**
      * @param string $name
+     *
      * @return self
      */
     public static function getByName($name)
@@ -102,7 +107,7 @@ class AbstractUser extends Model\AbstractModel
     }
 
     /**
-     * @return integer
+     * @return int
      */
     public function getId()
     {
@@ -110,7 +115,8 @@ class AbstractUser extends Model\AbstractModel
     }
 
     /**
-     * @param integer $id
+     * @param int $id
+     *
      * @return $this
      */
     public function setId($id)
@@ -121,7 +127,7 @@ class AbstractUser extends Model\AbstractModel
     }
 
     /**
-     * @return integer
+     * @return int
      */
     public function getParentId()
     {
@@ -129,8 +135,9 @@ class AbstractUser extends Model\AbstractModel
     }
 
     /**
-     * @param integer $parentId
-     * @return void
+     * @param int $parentId
+     *
+     * @return $this
      */
     public function setParentId($parentId)
     {
@@ -149,7 +156,8 @@ class AbstractUser extends Model\AbstractModel
 
     /**
      * @param string $name
-     * @return void
+     *
+     * @return $this
      */
     public function setName($name)
     {
@@ -168,10 +176,23 @@ class AbstractUser extends Model\AbstractModel
 
     /**
      * @return $this
+     *
      * @throws \Exception
      */
     public function save()
     {
+        $isUpdate = false;
+        if ($this->getId()) {
+            $isUpdate = true;
+            \Pimcore::getEventDispatcher()->dispatch(UserRoleEvents::PRE_UPDATE, new UserRoleEvent($this));
+        } else {
+            \Pimcore::getEventDispatcher()->dispatch(UserRoleEvents::PRE_ADD, new UserRoleEvent($this));
+        }
+
+        if (!preg_match('/^[a-zA-Z0-9\-\.~_@]+$/', $this->getName())) {
+            throw new \Exception('Invalid name for user/role `' . $this->getName() . '` (allowed characters: a-z A-Z 0-9 -.~_@)');
+        }
+
         $this->beginTransaction();
         try {
             if (!$this->getId()) {
@@ -186,18 +207,26 @@ class AbstractUser extends Model\AbstractModel
             throw $e;
         }
 
+        if ($isUpdate) {
+            \Pimcore::getEventDispatcher()->dispatch(UserRoleEvents::POST_UPDATE, new UserRoleEvent($this));
+        } else {
+            \Pimcore::getEventDispatcher()->dispatch(UserRoleEvents::POST_ADD, new UserRoleEvent($this));
+        }
+
         return $this;
     }
 
-    /**
-     *
-     */
     public function delete()
     {
+        if ($this->getId() < 1) {
+            throw new \Exception('Deleting the system user is not allowed!');
+        }
+
+        \Pimcore::getEventDispatcher()->dispatch(UserRoleEvents::PRE_DELETE, new UserRoleEvent($this));
 
         // delete all childs
         $list = new Listing();
-        $list->setCondition("parentId = ?", $this->getId());
+        $list->setCondition('parentId = ?', $this->getId());
         $list->load();
 
         if (is_array($list->getUsers())) {
@@ -209,10 +238,13 @@ class AbstractUser extends Model\AbstractModel
         // now delete the current user
         $this->getDao()->delete();
         \Pimcore\Cache::clearAll();
+
+        \Pimcore::getEventDispatcher()->dispatch(UserRoleEvents::POST_DELETE, new UserRoleEvent($this));
     }
 
     /**
      * @param $type
+     *
      * @return $this
      */
     public function setType($type)

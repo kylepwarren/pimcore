@@ -8,7 +8,7 @@
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
+ * @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
  * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
@@ -24,6 +24,7 @@ trait DryRun
      * Configure --dry-run
      *
      * @param null $description
+     *
      * @return $this
      */
     protected function configureDryRunOption($description = null)
@@ -36,7 +37,9 @@ trait DryRun
         }
 
         $command->addOption(
-            'dry-run', 'N', InputOption::VALUE_NONE,
+            'dry-run',
+            'N',
+            InputOption::VALUE_NONE,
             $description
         );
 
@@ -58,6 +61,8 @@ trait DryRun
      * Prefix message with DRY-RUN
      *
      * @param $message
+     * @param string $prefix
+     *
      * @return string
      */
     protected function prefixDryRun($message, $prefix = 'DRY-RUN')
@@ -67,5 +72,22 @@ trait DryRun
             $prefix,
             $message
         );
+    }
+
+    /**
+     * Prefix message with dry run if in dry-run mode
+     *
+     * @param $message
+     * @param string $prefix
+     *
+     * @return string
+     */
+    protected function dryRunMessage($message, $prefix = 'DRY-RUN')
+    {
+        if ($this->isDryRun()) {
+            $message = $this->prefixDryRun($message, $prefix);
+        }
+
+        return $message;
     }
 }

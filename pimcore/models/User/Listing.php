@@ -10,23 +10,26 @@
  *
  * @category   Pimcore
  * @package    User
- * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
+ *
+ * @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
  * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
 namespace Pimcore\Model\User;
-
-use Pimcore\Model;
 
 /**
  * @method \Pimcore\Model\User\Listing\Dao getDao()
  */
 class Listing extends Listing\AbstractListing
 {
-    public $type = "user";
+    /**
+     * @var string
+     */
+    public $type = 'user';
 
     /**
      * Alias for $this->getItems()
+     *
      * @return array
      */
     public function getUsers()

@@ -10,7 +10,8 @@
  *
  * @category   Pimcore
  * @package    Webservice
- * @copyright  Copyright (c) 2009-2016 pimcore GmbH (http://www.pimcore.org)
+ *
+ * @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
  * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
@@ -21,7 +22,6 @@ use Pimcore\Model\Webservice;
 
 class PageSnippet extends Model\Webservice\Data\Document
 {
-    
     /**
      * @var string
      */
@@ -42,7 +42,10 @@ class PageSnippet extends Model\Webservice\Data\Document
      */
     public $elements;
 
-
+    /**
+     * @param $object
+     * @param null $options
+     */
     public function map($object, $options = null)
     {
         $originalElements = [];
@@ -66,12 +69,13 @@ class PageSnippet extends Model\Webservice\Data\Document
      * @param $object
      * @param bool $disableMappingExceptions
      * @param null $idMapper
+     *
      * @throws \Exception
      */
     public function reverseMap($object, $disableMappingExceptions = false, $idMapper = null)
     {
         parent::reverseMap($object, $disableMappingExceptions, $idMapper);
-        
+
         $object->childs = null;
         $object->elements = [];
 
